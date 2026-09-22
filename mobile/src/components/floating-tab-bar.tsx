@@ -1,11 +1,12 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View } from "react-native";
 import type { BottomTabBarProps } from "expo-router/tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChartColumn, House, ReceiptText, Wallet, type LucideIcon } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { tap } from "@/lib/haptics";
-import { colors, radius, shadow } from "@/theme/tokens";
+import { radius, shadow } from "@/theme/tokens";
+import { makeStyles } from "@/theme/theme";
 
 const ICONS: Record<string, LucideIcon> = {
   index: House,
@@ -19,6 +20,7 @@ export const TAB_BAR_CLEARANCE = 96;
 
 /** The dark floating pill from the website mockups: the active tab expands to show its label. */
 export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
 
   return (
@@ -59,7 +61,7 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { position: "absolute", left: 0, right: 0, bottom: 0, alignItems: "center" },
   bar: {
     flexDirection: "row",
@@ -81,4 +83,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   active: { backgroundColor: "rgba(255,255,255,0.12)" },
-});
+}));

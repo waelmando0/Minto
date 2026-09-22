@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronRight } from "lucide-react-native";
@@ -13,9 +13,12 @@ import { categoryStyle } from "@/data/mock";
 import { formatCurrency } from "@/lib/format";
 import { categoryColor, incomeFor, periods, spendingByCategory, type Period } from "@/lib/insights";
 import { useAppState } from "@/state/app-state";
-import { colors, radius, spacing } from "@/theme/tokens";
+import { radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export default function InsightsScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { state } = useAppState();
   const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<Period>("30d");
@@ -127,7 +130,7 @@ export default function InsightsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background },
   gutter: { paddingHorizontal: spacing.xl },
   content: { padding: spacing.xl, gap: spacing.xl },
@@ -138,6 +141,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 },
   rowMain: { flex: 1, gap: 6 },
   rowTop: { flexDirection: "row", justifyContent: "space-between" },
-  track: { height: 6, borderRadius: radius.pill, backgroundColor: "rgba(0,0,0,0.06)", overflow: "hidden" },
+  track: { height: 6, borderRadius: radius.pill, backgroundColor: colors.track, overflow: "hidden" },
   fill: { height: "100%", borderRadius: radius.pill },
-});
+}));

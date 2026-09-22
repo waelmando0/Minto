@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { useColors } from "@/theme/theme";
+
 export interface DonutSegment {
   key: string;
   value: number;
@@ -35,13 +37,14 @@ interface DonutChartProps {
 
 /** Ring split into proportional segments, drawn with dashed SVG circles. */
 export function DonutChart({ segments, size = 200, stroke = 22, gap = 2, label, children }: DonutChartProps) {
+  const colors = useColors();
   const r = (size - stroke) / 2;
   const arcs = donutArcs(segments, 2 * Math.PI * r, gap);
 
   return (
     <View style={{ width: size, height: size }} accessible accessibilityRole="image" accessibilityLabel={label}>
       <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(0,0,0,0.06)" strokeWidth={stroke} fill="none" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.track} strokeWidth={stroke} fill="none" />
         {arcs.map((arc) => (
           <Circle
             key={arc.key}

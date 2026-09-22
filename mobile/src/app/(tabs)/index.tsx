@@ -12,7 +12,7 @@ import { Card, IconButton, SectionHeader } from "@/components/ui";
 import { WalletStack } from "@/components/wallet-stack";
 import { user } from "@/data/mock";
 import { useAppState } from "@/state/app-state";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
 
 function greeting(hour = new Date().getHours()) {
   if (hour < 12) return "Good Morning,";
@@ -21,6 +21,7 @@ function greeting(hour = new Date().getHours()) {
 }
 
 export default function HomeScreen() {
+  const colors = useColors();
   const { state } = useAppState();
   const [refreshing, setRefreshing] = useState(false);
 

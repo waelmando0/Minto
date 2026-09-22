@@ -1,6 +1,7 @@
 import { StyleSheet, Text as RNText, type TextProps as RNTextProps } from "react-native";
 
-import { colors, fonts } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
+import { fonts } from "@/theme/tokens";
 
 const variants = StyleSheet.create({
   display: { fontFamily: fonts.medium, fontSize: 34, letterSpacing: -1.2, lineHeight: 38 },
@@ -22,13 +23,14 @@ export interface TextProps extends RNTextProps {
 }
 
 /** Inter-based text with the app's type scale. */
-export function Text({ variant = "body", color = colors.ink, weight, align, style, ...props }: TextProps) {
+export function Text({ variant = "body", color, weight, align, style, ...props }: TextProps) {
+  const colors = useColors();
   return (
     <RNText
       {...props}
       style={[
         variants[variant],
-        { color },
+        { color: color ?? colors.ink },
         weight && { fontFamily: fonts[weight] },
         align && { textAlign: align },
         style,

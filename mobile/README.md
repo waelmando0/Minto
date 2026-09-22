@@ -13,6 +13,23 @@ npm run web        # the same app in a browser
 
 Every library used here is part of the Expo SDK or pure JavaScript, so the app runs in **Expo Go** without a custom build.
 
+## Dark mode
+
+The app follows the phone's appearance. **Profile → Appearance** overrides it. The choice is saved on the device, so it also applies to the sign-in screens and survives sign-out.
+
+Colours come from `useColors()`. Styles that use colours are written with `makeStyles`, which builds them once per scheme:
+
+```tsx
+const useStyles = makeStyles((colors) => ({ card: { backgroundColor: colors.surface } }));
+
+function Card() {
+  const styles = useStyles();
+  // …
+}
+```
+
+Both palettes in `src/theme/tokens.ts` share the same keys. TypeScript fails the build if a colour is missing from either one.
+
 ## Checks
 
 GitHub Actions (`.github/workflows/ci.yml`) runs these on every pull request and push to `main`, along with a web bundle build and the website's lint, typecheck and build.
@@ -36,7 +53,7 @@ npm test           # jest-expo + React Native Testing Library
 | **Wallet** | Account cards, a selectable payment method, and receive details. Tap a detail to copy it; Share sends all of them. |
 | **Transfer** (modal) | One amount sheet for Send, Top Up, Deposit and Withdraw. It has its own keypad and validates the $10–$50,000 limits and available cash. A success state follows. |
 | **Transaction** (modal) | Details for any transaction row. |
-| **Profile** (modal, from the avatar on Home) | Your details, hide balances, accounts, Help & FAQ (opens the website), Reset demo data, and Sign out. |
+| **Profile** (modal, from the avatar on Home) | Your details, hide balances, Appearance (System / Light / Dark), accounts, Help & FAQ (opens the website), Reset demo data, and Sign out. |
 
 The eye button on any balance hides every amount in the app. Transfers really update the balances and add a transaction.
 
@@ -62,7 +79,8 @@ src/
   data/goals.ts        # 12 goal templates, starter goals, validation
   lib/                 # formatting, keypad/amount logic, chart series, spending insights, haptics, mock auth API,
                        # secure storage (session) and persist.ts (saved app data)
-  theme/tokens.ts      # colours, radii, spacing, fonts shared with the website
+  theme/tokens.ts      # light + dark palettes, radii, spacing, fonts
+  theme/theme.tsx      # ThemeProvider (System / Light / Dark, saved per device), useColors(), makeStyles()
   __tests__/           # unit tests (formatting, reducer) and a component test
 ```
 

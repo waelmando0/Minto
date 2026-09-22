@@ -4,9 +4,10 @@ import { Money } from "@/components/money";
 import { Text } from "@/components/text";
 import { IconTile } from "@/components/ui";
 import type { Holding } from "@/data/mock";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
 
 export function HoldingRow({ holding }: { holding: Holding }) {
+  const colors = useColors();
   return (
     <View style={styles.row} accessible>
       <IconTile icon={holding.icon} bg={holding.bg} fg={holding.fg} />

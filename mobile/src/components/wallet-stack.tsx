@@ -1,13 +1,15 @@
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
 import { BalanceToggle, Money } from "@/components/money";
 import { MintoMark } from "@/components/minto-mark";
 import { Text } from "@/components/text";
 import { totalBalance, useAppState } from "@/state/app-state";
-import { colors, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { makeStyles } from "@/theme/theme";
 
 /** The dark wallet with account cards tucked into it and the total balance. */
 export function WalletStack() {
+  const styles = useStyles();
   const { state } = useAppState();
 
   return (
@@ -49,7 +51,7 @@ export function WalletStack() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wallet: {
     backgroundColor: colors.graphite,
     borderRadius: radius.xl,
@@ -91,4 +93,4 @@ const styles = StyleSheet.create({
   },
   totalRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 },
   totalValue: { fontSize: 30, lineHeight: 36 },
-});
+}));

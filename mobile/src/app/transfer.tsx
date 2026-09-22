@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CircleCheck, X } from "lucide-react-native";
@@ -12,12 +12,15 @@ import { transferLimits, type TransferKind } from "@/data/mock";
 import { applyKey, formatAmountInput, formatCurrency, validateAmount } from "@/lib/format";
 import { success, warn } from "@/lib/haptics";
 import { availableFor, transferConfig, useAppState } from "@/state/app-state";
-import { colors, fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 const KINDS: TransferKind[] = ["send", "topup", "deposit", "withdraw", "goal"];
 
 /** Amount-entry sheet shared by Send, Top Up, Deposit and Withdraw. */
 export default function TransferScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const params = useLocalSearchParams<{ kind?: string; goalId?: string }>();
   const kind: TransferKind = KINDS.includes(params.kind as TransferKind) ? (params.kind as TransferKind) : "send";
   const config = transferConfig[kind];
@@ -153,7 +156,7 @@ export default function TransferScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl, justifyContent: "space-between" },
   bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   recipient: {
@@ -179,4 +182,4 @@ const styles = StyleSheet.create({
   available: { flexDirection: "row", alignItems: "center", gap: 4 },
   done: { justifyContent: "space-between" },
   doneBody: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
-});
+}));

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, Switch, View } from "react-native";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, RotateCcw, X, type LucideIcon } from "lucide-react-native";
+import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, Moon, RotateCcw, X, type LucideIcon } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { Card, IconButton } from "@/components/ui";
@@ -11,7 +11,8 @@ import { user } from "@/data/mock";
 import { tap } from "@/lib/haptics";
 import { useAppState } from "@/state/app-state";
 import { useSession } from "@/state/session";
-import { colors, radius, spacing } from "@/theme/tokens";
+import { radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors, useTheme, type ThemePreference } from "@/theme/theme";
 
 const HELP_URL = "https://creatorix-w5pn.vercel.app/#faq";
 
@@ -38,16 +39,10 @@ function Row({
   onPress?: () => void;
   right?: ReactNode;
 }) {
-  return (
-    <Pressable
-      accessibilityRole={onPress ? "button" : undefined}
-      disabled={!onPress}
-      onPress={() => {
-        tap();
-        onPress?.();
-      }}
-      style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}
-    >
+  const colors = useColors();
+  const styles = useStyles();
+  const content = (
+    <>
       <View style={styles.rowIcon}>
         <Icon size={18} color={colors.ink} />
       </View>
@@ -55,11 +50,66 @@ function Row({
         {label}
       </Text>
       {right ?? <ChevronRight size={18} color={colors.inkFaint} />}
+    </>
+  );
+
+  // Rows that only host a control (switch, picker) must not be a disabled
+  // Pressable: on web that disables every control inside it.
+  if (!onPress) return <View style={styles.row}>{content}</View>;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => {
+        tap();
+        onPress();
+      }}
+      style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]}
+    >
+      {content}
     </Pressable>
   );
 }
 
+const APPEARANCE: { id: ThemePreference; label: string }[] = [
+  { id: "system", label: "System" },
+  { id: "light", label: "Light" },
+  { id: "dark", label: "Dark" },
+];
+
+/** Segmented control for the device-wide appearance preference. */
+function AppearancePicker() {
+  const colors = useColors();
+  const styles = useStyles();
+  const { preference, setPreference } = useTheme();
+  return (
+    <View style={styles.segment} accessibilityRole="radiogroup" accessibilityLabel="Appearance">
+      {APPEARANCE.map((option) => {
+        const selected = option.id === preference;
+        return (
+          <Pressable
+            key={option.id}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selected }}
+            onPress={() => {
+              tap();
+              setPreference(option.id);
+            }}
+            style={[styles.segmentItem, selected && { backgroundColor: colors.surface }]}
+          >
+            <Text variant="caption" weight={selected ? "semibold" : "medium"} color={selected ? colors.ink : colors.inkMuted}>
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function ProfileScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { session, signOut } = useSession();
   const { state, dispatch } = useAppState();
@@ -81,7 +131,7 @@ export default function ProfileScreen() {
 
       <View style={styles.identity}>
         <View style={styles.avatar}>
-          <Text variant="title" color="#fff">
+          <Text variant="title" color={colors.onInk}>
             {initials}
           </Text>
         </View>
@@ -97,11 +147,12 @@ export default function ProfileScreen() {
             <Switch
               value={state.balanceHidden}
               onValueChange={() => dispatch({ type: "toggleBalance" })}
-              trackColor={{ true: colors.violet, false: "#D7D7DC" }}
+              trackColor={{ true: colors.violet, false: colors.radioOff }}
               accessibilityLabel="Hide balances"
             />
           }
         />
+        <Row icon={Moon} label="Appearance" right={<AppearancePicker />} />
         <Row
           icon={CreditCard}
           label="Accounts & payment methods"
@@ -149,7 +200,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl, gap: spacing.xl },
   bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   identity: { alignItems: "center", gap: 4 },
@@ -163,6 +214,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 },
+  segment: { flexDirection: "row", backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, padding: 3 },
+  segmentItem: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill },
   rowIcon: {
     width: 34,
     height: 34,
@@ -171,4 +224,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -9,9 +9,12 @@ import { Button } from "@/components/ui";
 import { goalTemplates, validateGoal, type GoalTemplate } from "@/data/goals";
 import { success, tap, warn } from "@/lib/haptics";
 import { useAppState } from "@/state/app-state";
-import { colors, fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export default function NewGoalScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { dispatch } = useAppState();
   const insets = useSafeAreaInsets();
   const [template, setTemplate] = useState<GoalTemplate>(goalTemplates[0]);
@@ -129,7 +132,7 @@ export default function NewGoalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background },
   gutter: { paddingHorizontal: spacing.xl },
   content: { padding: spacing.xl, gap: spacing.lg },
@@ -158,4 +161,4 @@ const styles = StyleSheet.create({
   },
   amount: { flexDirection: "row", alignItems: "center", gap: 8 },
   amountInput: { flex: 1 },
-});
+}));

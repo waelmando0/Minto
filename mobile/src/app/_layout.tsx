@@ -14,7 +14,7 @@ import {
 
 import { AppStateProvider, useAppState } from "@/state/app-state";
 import { SessionProvider, useSession } from "@/state/session";
-import { colors } from "@/theme/tokens";
+import { ThemeProvider, useTheme } from "@/theme/theme";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -27,12 +27,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <SessionProvider>
-          <AppStateProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
-          </AppStateProvider>
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <AppStateProvider>
+              <RootNavigator />
+            </AppStateProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -40,9 +41,10 @@ export default function RootLayout() {
 
 /** Signed-in users get the app; everyone else only reaches the auth screens. */
 function RootNavigator() {
+  const { colors, scheme, ready: themeReady } = useTheme();
   const { status } = useSession();
   const { ready } = useAppState();
-  const loading = status === "loading" || !ready;
+  const loading = status === "loading" || !ready || !themeReady;
 
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync();
@@ -52,22 +54,25 @@ function RootNavigator() {
   const signedIn = status === "signedIn";
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-      <Stack.Protected guard={signedIn}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="transaction/[id]" options={{ presentation: "modal" }} />
-        <Stack.Screen name="transfer" options={{ presentation: "modal" }} />
-        <Stack.Screen name="profile" options={{ presentation: "modal" }} />
-        <Stack.Screen name="goals/index" />
-        <Stack.Screen name="goals/new" />
-        <Stack.Screen name="goals/[id]" />
-        <Stack.Screen name="insights" />
-      </Stack.Protected>
-      <Stack.Protected guard={!signedIn}>
-        <Stack.Screen name="welcome" />
-        <Stack.Screen name="sign-in" />
-        <Stack.Screen name="verify" />
-      </Stack.Protected>
-    </Stack>
+    <>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="transaction/[id]" options={{ presentation: "modal" }} />
+          <Stack.Screen name="transfer" options={{ presentation: "modal" }} />
+          <Stack.Screen name="profile" options={{ presentation: "modal" }} />
+          <Stack.Screen name="goals/index" />
+          <Stack.Screen name="goals/new" />
+          <Stack.Screen name="goals/[id]" />
+          <Stack.Screen name="insights" />
+        </Stack.Protected>
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="welcome" />
+          <Stack.Screen name="sign-in" />
+          <Stack.Screen name="verify" />
+        </Stack.Protected>
+      </Stack>
+    </>
   );
 }

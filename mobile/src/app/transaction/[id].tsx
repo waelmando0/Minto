@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
@@ -9,9 +9,12 @@ import { Card, IconButton, IconTile } from "@/components/ui";
 import { categoryStyle } from "@/data/mock";
 import { formatDateTime } from "@/lib/format";
 import { useAppState } from "@/state/app-state";
-import { colors, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export default function TransactionDetail() {
+  const colors = useColors();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { state } = useAppState();
   const insets = useSafeAreaInsets();
@@ -78,9 +81,9 @@ export default function TransactionDetail() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl, gap: spacing.xxl },
   bar: { flexDirection: "row", justifyContent: "flex-end" },
   hero: { alignItems: "center", gap: 10 },
   row: { flexDirection: "row", justifyContent: "space-between", gap: 16 },
-});
+}));

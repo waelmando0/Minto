@@ -1,13 +1,16 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 
 import { Text } from "@/components/text";
 import { SectionHeader } from "@/components/ui";
 import { quickActions } from "@/data/mock";
 import { tap } from "@/lib/haptics";
-import { colors, radius, shadow } from "@/theme/tokens";
+import { radius, shadow } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export function QuickActions() {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View>
       <SectionHeader title="Quick Action" action="Customize" />
@@ -38,7 +41,7 @@ export function QuickActions() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: "row", justifyContent: "space-between", marginTop: 14 },
   item: { alignItems: "center", gap: 8, width: 60 },
   tile: {
@@ -61,4 +64,4 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.surface,
   },
-});
+}));

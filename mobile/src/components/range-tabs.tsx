@@ -1,13 +1,16 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { Text } from "@/components/text";
 import type { Range } from "@/data/mock";
 import { tap } from "@/lib/haptics";
-import { colors, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 const RANGES: Range[] = ["1D", "1W", "1M", "3M", "1Y"];
 
 export function RangeTabs({ value, onChange }: { value: Range; onChange: (range: Range) => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={styles.row} accessibilityRole="tablist">
       {RANGES.map((range) => {
@@ -34,8 +37,8 @@ export function RangeTabs({ value, onChange }: { value: Range; onChange: (range:
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 4 },
   tab: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill },
   selected: { backgroundColor: colors.tabBar },
-});
+}));

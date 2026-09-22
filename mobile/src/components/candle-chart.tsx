@@ -3,7 +3,7 @@ import { View, type LayoutChangeEvent } from "react-native";
 import Svg, { Line, Rect } from "react-native-svg";
 
 import { generateCandles } from "@/lib/chart";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
 
 interface CandleChartProps {
   seed: number;
@@ -14,6 +14,7 @@ interface CandleChartProps {
 
 /** Candlestick chart drawn with react-native-svg; sizes itself to its container. */
 export function CandleChart({ seed, height = 150, count = 40, label }: CandleChartProps) {
+  const colors = useColors();
   const [width, setWidth] = useState(0);
   const candles = useMemo(() => generateCandles(count, seed), [count, seed]);
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft } from "lucide-react-native";
@@ -8,9 +8,12 @@ import { Text } from "@/components/text";
 import { Button, IconButton } from "@/components/ui";
 import { requestCode, validateEmail } from "@/lib/auth";
 import { warn } from "@/lib/haptics";
-import { colors, fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export default function SignInScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { returning } = useLocalSearchParams<{ returning?: string }>();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
@@ -81,7 +84,7 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
   body: { flex: 1, gap: 12, marginTop: 28 },
   input: {
@@ -96,4 +99,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
   },
-});
+}));
