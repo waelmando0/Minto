@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Bell, CircleUserRound } from "lucide-react-native";
 
+import { GoalCard } from "@/components/goal-card";
 import { QuickActions } from "@/components/quick-actions";
 import { Screen } from "@/components/screen";
 import { Text } from "@/components/text";
@@ -49,6 +50,26 @@ export default function HomeScreen() {
       <WalletStack />
       <QuickActions />
 
+      <View style={{ gap: 12 }}>
+        <SectionHeader
+          title="Goals"
+          action={state.goals.length ? "See All" : "Create"}
+          onAction={() => router.push(state.goals.length ? "/goals" : "/goals/new")}
+        />
+        {state.goals.length ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.goals}
+            style={styles.goalsScroller}
+          >
+            {state.goals.map((goal) => (
+              <GoalCard key={goal.id} goal={goal} />
+            ))}
+          </ScrollView>
+        ) : null}
+      </View>
+
       <Card>
         <SectionHeader title="Recent Transactions" action="See All" onAction={() => router.navigate("/activity")} />
         <View style={{ marginTop: 6 }}>
@@ -64,4 +85,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 8 },
   headerActions: { flexDirection: "row", gap: 10 },
+  // Bleed the strip to the screen edges while keeping cards aligned with the gutter.
+  goalsScroller: { marginHorizontal: -20 },
+  goals: { gap: 12, paddingHorizontal: 20, paddingVertical: 4 },
 });

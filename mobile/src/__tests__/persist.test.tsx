@@ -18,12 +18,12 @@ beforeEach(async () => {
 
 describe("parseSaved", () => {
   it("accepts a current save and rejects stale or malformed ones", () => {
-    const good = JSON.stringify({ version: 1, state: initialState });
+    const good = JSON.stringify({ version: 2, state: initialState });
     expect(parseSaved(good)).toEqual(initialState);
     expect(parseSaved(null)).toBeNull();
     expect(parseSaved("not json")).toBeNull();
     expect(parseSaved(JSON.stringify({ version: 0, state: initialState }))).toBeNull();
-    expect(parseSaved(JSON.stringify({ version: 1, state: { ...initialState, accounts: "x" } }))).toBeNull();
+    expect(parseSaved(JSON.stringify({ version: 2, state: { ...initialState, accounts: "x" } }))).toBeNull();
   });
 });
 
@@ -70,7 +70,7 @@ describe("AppStateProvider persistence", () => {
 
   it("wipes the saved data and resets on sign-out", async () => {
     const changed = appReducer(initialState, { type: "transfer", kind: "topup", amount: 100 });
-    await AsyncStorage.setItem(storageKey(EMAIL), JSON.stringify({ version: 1, state: changed }));
+    await AsyncStorage.setItem(storageKey(EMAIL), JSON.stringify({ version: 2, state: changed }));
     secureStore.__store.set("minto.session", JSON.stringify({ email: EMAIL, token: "t" }));
 
     await renderApp();

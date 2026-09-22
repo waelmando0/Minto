@@ -14,11 +14,11 @@ import { success, warn } from "@/lib/haptics";
 import { availableFor, transferConfig, useAppState } from "@/state/app-state";
 import { colors, fonts, radius, spacing } from "@/theme/tokens";
 
-const KINDS: TransferKind[] = ["send", "topup", "deposit", "withdraw"];
+const KINDS: TransferKind[] = ["send", "topup", "deposit", "withdraw", "goal"];
 
 /** Amount-entry sheet shared by Send, Top Up, Deposit and Withdraw. */
 export default function TransferScreen() {
-  const params = useLocalSearchParams<{ kind?: string }>();
+  const params = useLocalSearchParams<{ kind?: string; goalId?: string }>();
   const kind: TransferKind = KINDS.includes(params.kind as TransferKind) ? (params.kind as TransferKind) : "send";
   const config = transferConfig[kind];
   const { state, dispatch } = useAppState();
@@ -29,12 +29,19 @@ export default function TransferScreen() {
   const [error, setError] = useState<string>();
   const [done, setDone] = useState<number | null>(null);
 
+  const goal = kind === "goal" ? state.goals.find((g) => g.id === params.goalId) : undefined;
   const available = availableFor(state, kind);
+  const remaining = goal ? Math.round((goal.target - goal.saved) * 100) / 100 : undefined;
+  const title = goal ? `Add to ${goal.name}` : config.title;
   const close = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
   const submit = () => {
     const message =
+      (kind === "goal" && !goal ? "This goal no longer exists" : undefined) ??
       validateAmount(amount, { ...transferLimits, available }) ??
+      (remaining !== undefined && Number(amount) > remaining
+        ? `Only ${formatCurrency(remaining)} left to reach this goal`
+        : undefined) ??
       (kind === "send" && !recipient.trim() ? "Add who you're sending to" : undefined);
     if (message) {
       warn();
@@ -42,7 +49,13 @@ export default function TransferScreen() {
       return;
     }
     const value = Number(amount);
-    dispatch({ type: "transfer", kind, amount: value, counterparty: kind === "send" ? recipient : undefined });
+    dispatch({
+      type: "transfer",
+      kind,
+      amount: value,
+      counterparty: kind === "send" ? recipient : undefined,
+      goalId: goal?.id,
+    });
     success();
     setDone(value);
   };
@@ -56,7 +69,13 @@ export default function TransferScreen() {
             {config.verb} complete
           </Text>
           <Text align="center" color={colors.inkMuted}>
-            {formatCurrency(done)} {kind === "send" && recipient.trim() ? `sent to ${recipient.trim()}` : "has been processed"}.
+            {formatCurrency(done)}{" "}
+            {goal
+              ? `added to ${goal.name}`
+              : kind === "send" && recipient.trim()
+                ? `sent to ${recipient.trim()}`
+                : "has been processed"}
+            .
           </Text>
         </View>
         <Button label="Done" block onPress={close} />
@@ -67,8 +86,8 @@ export default function TransferScreen() {
   return (
     <View style={[styles.root, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}>
       <View style={styles.bar}>
-        <Text variant="heading" accessibilityRole="header">
-          {config.title}
+        <Text variant="heading" accessibilityRole="header" numberOfLines={1} style={{ flex: 1 }}>
+          {title}
         </Text>
         <IconButton icon={X} label="Close" onPress={close} />
       </View>
@@ -109,6 +128,14 @@ export default function TransferScreen() {
               Available:
             </Text>
             <Money value={available} variant="caption" weight="semibold" color={colors.violet} />
+            {remaining !== undefined ? (
+              <>
+                <Text variant="caption" color={colors.inkSubtle}>
+                  {" · Left to save:"}
+                </Text>
+                <Money value={remaining} variant="caption" weight="semibold" color={colors.violet} />
+              </>
+            ) : null}
           </View>
         ) : null}
       </View>

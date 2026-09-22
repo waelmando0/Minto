@@ -58,6 +58,9 @@ function RootNavigator() {
         <Stack.Screen name="transaction/[id]" options={{ presentation: "modal" }} />
         <Stack.Screen name="transfer" options={{ presentation: "modal" }} />
         <Stack.Screen name="profile" options={{ presentation: "modal" }} />
+        <Stack.Screen name="goals/index" />
+        <Stack.Screen name="goals/new" />
+        <Stack.Screen name="goals/[id]" />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="welcome" />

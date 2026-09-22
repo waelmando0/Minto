@@ -15,6 +15,7 @@ import {
   Send,
   ShoppingBag,
   ShoppingBasket,
+  Target,
   type LucideIcon,
 } from "lucide-react-native";
 
@@ -52,7 +53,8 @@ export type Category =
   | "Groceries"
   | "Bills"
   | "Transfer"
-  | "Investing";
+  | "Investing"
+  | "Savings";
 
 export const categoryStyle: Record<Category, { icon: LucideIcon; bg: string; fg: string }> = {
   "Food & Drink": { icon: Coffee, bg: "#F3EAD9", fg: "#7A5A2A" },
@@ -64,6 +66,7 @@ export const categoryStyle: Record<Category, { icon: LucideIcon; bg: string; fg:
   Bills: { icon: Receipt, bg: "#E3EBFF", fg: "#3D63E0" },
   Transfer: { icon: Send, bg: "#E3EBFF", fg: "#2F6DF6" },
   Investing: { icon: PiggyBank, bg: "#ECE6FE", fg: "#7A4CF5" },
+  Savings: { icon: Target, bg: "#E3F2E6", fg: "#2F8A4A" },
 };
 
 export interface Transaction {
@@ -137,7 +140,7 @@ export const ranges: Record<Range, { seed: number; change: number; label: string
   "1Y": { seed: 42, change: 31.6, label: "Compared to last year" },
 };
 
-export type TransferKind = "send" | "topup" | "deposit" | "withdraw";
+export type TransferKind = "send" | "topup" | "deposit" | "withdraw" | "goal";
 
 export interface QuickAction {
   label: string;
