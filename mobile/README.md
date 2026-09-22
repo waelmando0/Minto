@@ -31,7 +31,8 @@ npm test           # jest-expo + React Native Testing Library
 | **Home** | Greeting, the wallet stack with account cards and total balance, quick actions, a Goals strip, and recent transactions. Pull down to refresh. |
 | **Goals** (list, new, detail) | Savings goals from 12 templates, each with a progress ring. "Add money" moves cash from Personal into the goal; closing a goal returns its savings. Each goal shows its history. |
 | **Invest** | Investment assets with a candlestick chart. The 1D–1Y ranges change the chart and headline change. Also investment cash with Deposit / Withdraw, and the portfolio. |
-| **Activity** | Every transaction grouped by day, with search, category and income filters, and spent/received totals. |
+| **Activity** | Every transaction grouped by day, with search, category and income filters, money in/out totals, and a 30-day spending card that opens Insights. |
+| **Spending insights** | A donut chart of spending by category for 7 days, 30 days or all time, with income, net and your top category. Tap a category to see its transactions in Activity. Moves between your own accounts (goals, investment buys) don't count as spending. |
 | **Wallet** | Account cards, a selectable payment method, and receive details. Tap a detail to copy it; Share sends all of them. |
 | **Transfer** (modal) | One amount sheet for Send, Top Up, Deposit and Withdraw. It has its own keypad and validates the $10–$50,000 limits and available cash. A success state follows. |
 | **Transaction** (modal) | Details for any transaction row. |
@@ -50,6 +51,7 @@ src/
     welcome.tsx sign-in.tsx verify.tsx   # auth flow (signed out only)
     profile.tsx        # profile & settings modal
     goals/             # index (list), new (templates + target), [id] (progress, add money, close)
+    insights.tsx       # spending by category (donut + breakdown)
     (tabs)/            # Home, Invest, Activity, Wallet + floating tab bar
     transfer.tsx       # amount sheet (?kind=send|topup|deposit|withdraw)
     transaction/[id].tsx
@@ -58,7 +60,7 @@ src/
   state/session.tsx    # session restore / sign in / sign out, persisted in secure storage
   data/mock.ts         # mock user, accounts, transactions, holdings, banks
   data/goals.ts        # 12 goal templates, starter goals, validation
-  lib/                 # formatting, keypad/amount logic, chart series, haptics, mock auth API,
+  lib/                 # formatting, keypad/amount logic, chart series, spending insights, haptics, mock auth API,
                        # secure storage (session) and persist.ts (saved app data)
   theme/tokens.ts      # colours, radii, spacing, fonts shared with the website
   __tests__/           # unit tests (formatting, reducer) and a component test

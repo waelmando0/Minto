@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { Search } from "lucide-react-native";
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { ChartPie, ChevronRight, Search, X } from "lucide-react-native";
 
 import { Money } from "@/components/money";
 import { Screen } from "@/components/screen";
 import { Text } from "@/components/text";
 import { TransactionRow } from "@/components/transaction-row";
+import { SpendingBar } from "@/components/spending-bar";
 import { Card, Chip } from "@/components/ui";
-import type { Category } from "@/data/mock";
+import { categoryStyle, type Category } from "@/data/mock";
 import { groupByDay } from "@/lib/group";
+import { spendingByCategory } from "@/lib/insights";
 import { useAppState } from "@/state/app-state";
 import { colors, fonts, radius, spacing } from "@/theme/tokens";
 
@@ -16,8 +19,20 @@ type Filter = "All" | "Income" | Category;
 
 export default function ActivityScreen() {
   const { state } = useAppState();
+  const params = useLocalSearchParams<{ category?: string }>();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
+
+  // Insights links here with ?category=…; apply it whenever that link changes.
+  const linked = params.category && params.category in categoryStyle ? (params.category as Category) : undefined;
+  const [appliedLink, setAppliedLink] = useState<Category | undefined>(undefined);
+  if (linked !== appliedLink) {
+    setAppliedLink(linked);
+    if (linked) setFilter(linked);
+  }
+
+  const monthly = useMemo(() => spendingByCategory(state.transactions, "30d"), [state.transactions]);
+  const monthlyTotal = monthly.reduce((s, c) => s + c.total, 0);
 
   const filters = useMemo<Filter[]>(() => {
     const used = Array.from(new Set(state.transactions.map((t) => t.category)));
@@ -64,16 +79,65 @@ export default function ActivityScreen() {
         </View>
       }
     >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Open spending insights"
+        onPress={() => router.push("/insights")}
+        style={({ pressed }) => pressed && { opacity: 0.8 }}
+      >
+        <Card style={styles.insights}>
+          <View style={styles.insightsTop}>
+            <View style={styles.insightsTitle}>
+              <ChartPie size={18} color={colors.violet} />
+              <Text variant="label" weight="semibold">
+                Spending, last 30 days
+              </Text>
+            </View>
+            <ChevronRight size={18} color={colors.inkFaint} />
+          </View>
+          <Money value={monthlyTotal} variant="title" />
+          <SpendingBar items={monthly} />
+          <Text variant="caption" color={colors.inkSubtle}>
+            {monthly.length
+              ? `Top: ${monthly
+                  .slice(0, 3)
+                  .map((c) => `${c.category} ${Math.round(c.share * 100)}%`)
+                  .join(" · ")}`
+              : "No spending yet this month."}
+          </Text>
+        </Card>
+      </Pressable>
+
+      {filter !== "All" ? (
+        <View style={styles.activeFilter} accessibilityLiveRegion="polite">
+          <Text variant="label" color={colors.inkMuted}>
+            Showing: <Text variant="label" weight="semibold">{filter}</Text>
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear filter"
+            hitSlop={10}
+            onPress={() => setFilter("All")}
+            style={styles.clear}
+          >
+            <X size={14} color={colors.ink} />
+            <Text variant="label" weight="medium">
+              Clear
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.totals}>
         <Card style={styles.total}>
           <Text variant="caption" color={colors.inkSubtle}>
-            Spent
+            Money out
           </Text>
           <Money value={Math.abs(spent)} variant="heading" />
         </Card>
         <Card style={styles.total}>
           <Text variant="caption" color={colors.inkSubtle}>
-            Received
+            Money in
           </Text>
           <Money value={received} variant="heading" color={colors.positive} />
         </Card>
@@ -115,6 +179,19 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontFamily: fonts.regular, fontSize: 15, color: colors.ink, height: "100%" },
   chips: { gap: 8 },
   totals: { flexDirection: "row", gap: 12 },
+  insights: { gap: 10 },
+  activeFilter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
+  clear: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+  },
+  insightsTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  insightsTitle: { flexDirection: "row", alignItems: "center", gap: 8 },
   total: { flex: 1, gap: 4, paddingVertical: 14 },
   day: { paddingHorizontal: 4 },
 });
