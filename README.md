@@ -11,7 +11,7 @@ npm run build   # production build
 npm run lint
 ```
 
-The site URL used for canonical URLs, the sitemap and Open Graph tags defaults to `https://minto.vercel.app` (see `lib/site-url.ts`). Set `NEXT_PUBLIC_SITE_URL` to override it, e.g. when you add a custom domain.
+The site URL used for canonical URLs, the sitemap and Open Graph tags defaults to `https://creatorix-w5pn.vercel.app` (see `lib/site-url.ts`). Set `NEXT_PUBLIC_SITE_URL` to override it, e.g. when you add a custom domain.
 
 ## Project structure
 
