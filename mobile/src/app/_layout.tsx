@@ -61,6 +61,7 @@ function RootNavigator() {
         <Stack.Screen name="goals/index" />
         <Stack.Screen name="goals/new" />
         <Stack.Screen name="goals/[id]" />
+        <Stack.Screen name="insights" />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="welcome" />
