@@ -1,4 +1,15 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type Dispatch,
+  type ReactNode,
+} from "react";
 
 import {
   accounts as initialAccounts,
@@ -10,8 +21,18 @@ import {
   type Transaction,
   type TransferKind,
 } from "@/data/mock";
-import { initialGoals, type Goal } from "@/data/goals";
+import { initialGoals, type Goal, type GoalTemplateId } from "@/data/goals";
 import { clearState, loadState, saveState } from "@/lib/persist";
+import {
+  errorMessage,
+  fetchSnapshot,
+  remoteCloseGoal,
+  remoteCreateGoal,
+  remoteReset,
+  remoteTransfer,
+  type RemoteSnapshot,
+} from "@/lib/remote";
+import { getSupabase } from "@/lib/supabase";
 import { useSession } from "@/state/session";
 
 export interface AppState {
@@ -21,11 +42,15 @@ export interface AppState {
   balanceHidden: boolean;
   paymentMethodId: string;
   goals: Goal[];
+  /** Name shown in the app; comes from the Supabase profile when connected. */
+  displayName?: string;
 }
 
 export type AppAction =
   | { type: "hydrate"; state: AppState }
   | { type: "reset" }
+  /** Replaces server-owned data with a fresh snapshot, keeping device preferences. */
+  | { type: "sync"; snapshot: RemoteSnapshot }
   | { type: "toggleBalance" }
   | { type: "selectPaymentMethod"; id: string }
   | { type: "transfer"; kind: TransferKind; amount: number; counterparty?: string; goalId?: string; now?: Date }
@@ -68,6 +93,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return action.state;
     case "reset":
       return initialState;
+    case "sync":
+      return { ...state, ...action.snapshot };
     case "toggleBalance":
       return { ...state, balanceHidden: !state.balanceHidden };
     case "selectPaymentMethod":
@@ -131,21 +158,66 @@ export function appReducer(state: AppState, action: AppAction): AppState {
   }
 }
 
-const AppStateContext = createContext<{ state: AppState; dispatch: Dispatch<AppAction>; ready: boolean } | null>(null);
+/** Money movements and goal changes; every screen goes through these. */
+export interface AppActions {
+  transfer: (input: { kind: TransferKind; amount: number; counterparty?: string; goalId?: string }) => Promise<void>;
+  /** Resolves to the new goal's id. */
+  createGoal: (input: { name: string; template: GoalTemplateId; target: number }) => Promise<string>;
+  closeGoal: (id: string) => Promise<void>;
+  resetData: () => Promise<void>;
+  /** Re-fetches from Supabase; a no-op in demo mode. */
+  refresh: () => Promise<void>;
+}
+
+export type SyncStatus = { state: "idle" } | { state: "syncing" } | { state: "error"; message: string };
+
+interface AppStateContextValue {
+  state: AppState;
+  dispatch: Dispatch<AppAction>;
+  actions: AppActions;
+  ready: boolean;
+  mode: "demo" | "supabase";
+  sync: SyncStatus;
+}
+
+const AppStateContext = createContext<AppStateContextValue | null>(null);
 
 const SAVE_DELAY = 300;
 
+/** Starting point for a Supabase user whose data hasn't loaded yet. */
+const emptyRemoteState: AppState = { ...initialState, accounts: [], transactions: [], goals: [], investmentCash: 0 };
+
 /**
- * Holds the in-app data. When someone signs in it restores their saved copy
- * (or starts from the demo data), saves every change, and wipes both memory
- * and storage on sign-out.
+ * Holds the in-app data.
+ *
+ * Demo mode: restores the signed-in user's saved copy (or the demo data),
+ * saves every change on the device, and wipes it on sign-out.
+ *
+ * Supabase mode: the server owns balances, transactions and goals. The saved
+ * copy is only an offline cache shown until the fresh snapshot arrives, and
+ * every action runs a server function, then re-fetches.
  */
 export function AppStateProvider({ children, initial = initialState }: { children: ReactNode; initial?: AppState }) {
   const { status, session } = useSession();
   const email = session?.email ?? null;
+  const supabase = getSupabase();
+  const mode = supabase ? "supabase" : "demo";
   const [state, dispatch] = useReducer(appReducer, initial);
   const [hydratedFor, setHydratedFor] = useState<string | null>(null);
+  const [sync, setSync] = useState<SyncStatus>({ state: "idle" });
   const previousEmail = useRef<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!supabase) return;
+    setSync({ state: "syncing" });
+    try {
+      const snapshot = await fetchSnapshot(supabase, email ?? undefined);
+      dispatch({ type: "sync", snapshot });
+      setSync({ state: "idle" });
+    } catch (error) {
+      setSync({ state: "error", message: errorMessage(error, "Couldn't load your data.") });
+    }
+  }, [supabase, email]);
 
   // Restore on sign-in; clear on sign-out.
   useEffect(() => {
@@ -153,10 +225,27 @@ export function AppStateProvider({ children, initial = initialState }: { childre
     let cancelled = false;
 
     if (email) {
-      void loadState(email).then((saved) => {
+      void loadState(email).then(async (saved) => {
         if (cancelled) return;
-        dispatch(saved ? { type: "hydrate", state: saved } : { type: "reset" });
-        setHydratedFor(email);
+        if (!supabase) {
+          dispatch(saved ? { type: "hydrate", state: saved } : { type: "reset" });
+          setHydratedFor(email);
+          return;
+        }
+        // Show the cached copy straight away (if any), then load the server's.
+        dispatch({ type: "hydrate", state: saved ?? emptyRemoteState });
+        if (saved) setHydratedFor(email);
+        setSync({ state: "syncing" });
+        try {
+          const snapshot = await fetchSnapshot(supabase, email);
+          if (cancelled) return;
+          dispatch({ type: "sync", snapshot });
+          setSync({ state: "idle" });
+        } catch (error) {
+          if (!cancelled) setSync({ state: "error", message: errorMessage(error, "Couldn't load your data.") });
+        } finally {
+          if (!cancelled) setHydratedFor(email);
+        }
       });
     } else {
       dispatch({ type: "reset" });
@@ -168,7 +257,7 @@ export function AppStateProvider({ children, initial = initialState }: { childre
     return () => {
       cancelled = true;
     };
-  }, [status, email]);
+  }, [status, email, supabase]);
 
   // Save changes (debounced) once the signed-in user's data is loaded.
   useEffect(() => {
@@ -177,8 +266,43 @@ export function AppStateProvider({ children, initial = initialState }: { childre
     return () => clearTimeout(timer);
   }, [state, email, hydratedFor]);
 
+  const actions = useMemo<AppActions>(() => {
+    if (!supabase) {
+      return {
+        transfer: async (input) => dispatch({ type: "transfer", ...input }),
+        createGoal: async ({ name, template, target }) => {
+          const id = `g${Date.now()}`;
+          dispatch({
+            type: "createGoal",
+            goal: { id, name, template, target, saved: 0, createdAt: new Date().toISOString() },
+          });
+          return id;
+        },
+        closeGoal: async (id) => dispatch({ type: "deleteGoal", id }),
+        resetData: async () => dispatch({ type: "reset" }),
+        refresh: async () => {},
+      };
+    }
+    // Server functions validate and apply the change; then pull the result.
+    const run = async <T,>(operation: () => Promise<T>) => {
+      const result = await operation();
+      await refresh();
+      return result;
+    };
+    return {
+      transfer: (input) => run(() => remoteTransfer(supabase, input)),
+      createGoal: (input) => run(() => remoteCreateGoal(supabase, input)),
+      closeGoal: (id) => run(() => remoteCloseGoal(supabase, id)),
+      resetData: () => run(() => remoteReset(supabase)),
+      refresh,
+    };
+  }, [supabase, refresh]);
+
   const ready = status === "signedOut" || (status === "signedIn" && hydratedFor === email);
-  const value = useMemo(() => ({ state, dispatch, ready }), [state, ready]);
+  const value = useMemo(
+    () => ({ state, dispatch, actions, ready, mode, sync }) satisfies AppStateContextValue,
+    [state, actions, ready, mode, sync],
+  );
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }
 

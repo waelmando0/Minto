@@ -8,7 +8,7 @@ import { QuickActions } from "@/components/quick-actions";
 import { Screen } from "@/components/screen";
 import { Text } from "@/components/text";
 import { TransactionRow } from "@/components/transaction-row";
-import { Card, IconButton, SectionHeader } from "@/components/ui";
+import { Button, Card, IconButton, SectionHeader } from "@/components/ui";
 import { WalletStack } from "@/components/wallet-stack";
 import { user } from "@/data/mock";
 import { useAppState } from "@/state/app-state";
@@ -22,7 +22,7 @@ function greeting(hour = new Date().getHours()) {
 
 export default function HomeScreen() {
   const colors = useColors();
-  const { state } = useAppState();
+  const { state, actions, sync } = useAppState();
   const [refreshing, setRefreshing] = useState(false);
 
   return (
@@ -30,7 +30,10 @@ export default function HomeScreen() {
       refreshing={refreshing}
       onRefresh={() => {
         setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 800);
+        // Demo mode has nothing to fetch; keep the gesture feeling responsive.
+        void Promise.all([actions.refresh(), new Promise((r) => setTimeout(r, 400))]).finally(() =>
+          setRefreshing(false),
+        );
       }}
     >
       <View style={styles.header}>
@@ -39,7 +42,7 @@ export default function HomeScreen() {
             {greeting()}
           </Text>
           <Text variant="title" accessibilityRole="header">
-            {user.name}
+            {state.displayName ?? user.name}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -47,6 +50,18 @@ export default function HomeScreen() {
           <IconButton icon={CircleUserRound} label="Profile" onPress={() => router.push("/profile")} />
         </View>
       </View>
+
+      {sync.state === "error" ? (
+        <Card style={{ gap: 10 }}>
+          <Text variant="label" weight="semibold">
+            Couldn&apos;t refresh your data
+          </Text>
+          <Text variant="caption" color={colors.inkMuted}>
+            {sync.message} You&apos;re seeing the last saved copy.
+          </Text>
+          <Button label="Try again" tone="light" onPress={() => void actions.refresh()} />
+        </Card>
+      ) : null}
 
       <WalletStack />
       <QuickActions />

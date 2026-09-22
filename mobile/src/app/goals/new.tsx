@@ -15,7 +15,8 @@ import { makeStyles, useColors } from "@/theme/theme";
 export default function NewGoalScreen() {
   const colors = useColors();
   const styles = useStyles();
-  const { dispatch } = useAppState();
+  const { actions } = useAppState();
+  const [pending, setPending] = useState(false);
   const insets = useSafeAreaInsets();
   const [template, setTemplate] = useState<GoalTemplate>(goalTemplates[0]);
   const [name, setName] = useState(goalTemplates[0].name);
@@ -31,20 +32,25 @@ export default function NewGoalScreen() {
     setError(undefined);
   };
 
-  const create = () => {
+  const create = async () => {
+    if (pending) return;
     const message = validateGoal(name, target);
     if (message) {
       warn();
       setError(message);
       return;
     }
-    const id = `g${Date.now()}`;
-    dispatch({
-      type: "createGoal",
-      goal: { id, name: name.trim(), template: template.id, target: Number(target), saved: 0, createdAt: new Date().toISOString() },
-    });
-    success();
-    router.replace({ pathname: "/goals/[id]", params: { id } });
+    setPending(true);
+    try {
+      const id = await actions.createGoal({ name: name.trim(), template: template.id, target: Number(target) });
+      success();
+      router.replace({ pathname: "/goals/[id]", params: { id } });
+    } catch (e) {
+      warn();
+      setError(e instanceof Error ? e.message : "Couldn't create the goal. Try again.");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -126,7 +132,7 @@ export default function NewGoalScreen() {
         ) : null}
       </ScrollView>
       <View style={[styles.gutter, { paddingBottom: insets.bottom + 16 }]}>
-        <Button label="Create goal" block onPress={create} />
+        <Button label={pending ? "Creating…" : "Create goal"} block disabled={pending} onPress={() => void create()} />
       </View>
     </KeyboardAvoidingView>
   );

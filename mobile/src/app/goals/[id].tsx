@@ -11,6 +11,7 @@ import { TransactionRow } from "@/components/transaction-row";
 import { Button, Card, IconButton } from "@/components/ui";
 import { goalProgress, templateById } from "@/data/goals";
 import { formatCurrency } from "@/lib/format";
+import { showMessage } from "@/lib/notify";
 import { useAppState } from "@/state/app-state";
 import { spacing } from "@/theme/tokens";
 import { makeStyles, useColors } from "@/theme/theme";
@@ -32,7 +33,7 @@ export default function GoalDetailScreen() {
   const colors = useColors();
   const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { state, dispatch } = useAppState();
+  const { state, actions } = useAppState();
   const insets = useSafeAreaInsets();
   const goal = state.goals.find((g) => g.id === id);
 
@@ -64,10 +65,14 @@ export default function GoalDetailScreen() {
               icon={Trash2}
               label="Close goal"
               onPress={() =>
-                confirmDelete(goal.name, goal.saved, () => {
-                  dispatch({ type: "deleteGoal", id: goal.id });
-                  if (router.canGoBack()) router.back();
-                  else router.replace("/goals");
+                confirmDelete(goal.name, goal.saved, async () => {
+                  try {
+                    await actions.closeGoal(goal.id);
+                    if (router.canGoBack()) router.back();
+                    else router.replace("/goals");
+                  } catch (e) {
+                    showMessage("Couldn't close the goal", e instanceof Error ? e.message : "Try again.");
+                  }
                 })
               }
             />
