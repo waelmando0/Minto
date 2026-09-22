@@ -2,6 +2,8 @@
 
 Marketing site for **Minto**, a personal-finance app that brings together everyday spending, investments and savings goals. Built with **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **shadcn/ui-style primitives on Radix**, **Framer Motion** and **Lucide** icons.
 
+> The Minto **mobile app** (Expo / React Native) lives in [`mobile/`](mobile/README.md). It has its own dependencies and checks, and the website build ignores it.
+
 ## Getting started
 
 ```bash
