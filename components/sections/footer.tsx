@@ -4,7 +4,7 @@ import Link from "next/link";
 import { MintoLogo } from "@/components/logo";
 import { StoreButtons } from "@/components/store-buttons";
 import { Container } from "@/components/container";
-import { footer, mintoMeta } from "@/lib/content";
+import { footer } from "@/lib/content";
 
 export function Footer() {
   return (
@@ -52,9 +52,6 @@ export function Footer() {
           className="object-cover [mask-image:linear-gradient(to_bottom,transparent,#000_22%)]"
         />
         <StoreButtons className="absolute top-[43%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex-nowrap" />
-        <p className="absolute inset-x-0 bottom-4 px-4 text-center text-[11px] text-white/85 [text-shadow:0_1px_8px_rgb(0_0_0/0.6)]">
-          © {new Date().getFullYear()} {mintoMeta.name} Financial, Inc. All rights reserved.
-        </p>
       </div>
     </footer>
   );
