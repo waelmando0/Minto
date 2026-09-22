@@ -1,9 +1,10 @@
 import { Tabs } from "expo-router";
 
 import { FloatingTabBar } from "@/components/floating-tab-bar";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
 
 export default function TabsLayout() {
+  const colors = useColors();
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}

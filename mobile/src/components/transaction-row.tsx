@@ -6,9 +6,10 @@ import { Text } from "@/components/text";
 import { IconTile } from "@/components/ui";
 import { categoryStyle, type Transaction } from "@/data/mock";
 import { formatDateTime } from "@/lib/format";
-import { colors } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
 
 export function TransactionRow({ transaction, showDate = true }: { transaction: Transaction; showDate?: boolean }) {
+  const colors = useColors();
   const style = categoryStyle[transaction.category];
   const date = new Date(transaction.date);
 

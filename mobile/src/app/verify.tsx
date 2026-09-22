@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft } from "lucide-react-native";
@@ -9,11 +9,14 @@ import { Button, IconButton } from "@/components/ui";
 import { CODE_LENGTH, DEMO_CODE, requestCode, verifyCode } from "@/lib/auth";
 import { success, warn } from "@/lib/haptics";
 import { useSession } from "@/state/session";
-import { colors, fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 const RESEND_AFTER = 30;
 
 export default function VerifyScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { email = "" } = useLocalSearchParams<{ email?: string }>();
   const { signIn } = useSession();
   const insets = useSafeAreaInsets();
@@ -139,7 +142,7 @@ export default function VerifyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
   body: { flex: 1, gap: 12, marginTop: 28 },
   boxes: { flexDirection: "row", gap: 8, marginTop: 12 },
@@ -164,4 +167,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
   },
   demo: { backgroundColor: colors.mint, borderRadius: radius.sm, paddingHorizontal: 12, paddingVertical: 10, marginTop: 8 },
-});
+}));

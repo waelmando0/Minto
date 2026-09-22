@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TAB_BAR_CLEARANCE } from "@/components/floating-tab-bar";
-import { colors, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
+import { makeStyles } from "@/theme/theme";
 
 interface ScreenProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ interface ScreenProps {
 
 /** Tab screen scaffold: safe-area top, horizontal gutter and room for the floating tab bar. */
 export function Screen({ children, header, refreshing, onRefresh }: ScreenProps) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -30,7 +32,7 @@ export function Screen({ children, header, refreshing, onRefresh }: ScreenProps)
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, gap: spacing.xxl },
-});
+}));

@@ -1,14 +1,17 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 
 import { Money } from "@/components/money";
 import { ProgressRing } from "@/components/progress-ring";
 import { Text } from "@/components/text";
 import { goalProgress, templateById, type Goal } from "@/data/goals";
-import { colors, radius, shadow } from "@/theme/tokens";
+import { radius, shadow } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 /** Compact goal tile used on Home and in the Goals list. */
 export function GoalCard({ goal, wide }: { goal: Goal; wide?: boolean }) {
+  const colors = useColors();
+  const styles = useStyles();
   const template = templateById(goal.template);
   const Icon = template.icon;
   const progress = goalProgress(goal);
@@ -44,9 +47,9 @@ export function GoalCard({ goal, wide }: { goal: Goal; wide?: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: 14, ...shadow.card },
   compact: { width: 168, gap: 12 },
   wide: { flexDirection: "row", alignItems: "center", gap: 14 },
   amounts: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap" },
-});
+}));

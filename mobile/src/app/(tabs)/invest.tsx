@@ -12,9 +12,11 @@ import { Text } from "@/components/text";
 import { Button, Card, SectionHeader } from "@/components/ui";
 import { holdings, ranges, type Range } from "@/data/mock";
 import { useAppState } from "@/state/app-state";
-import { colors, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { useColors } from "@/theme/theme";
 
 export default function InvestScreen() {
+  const colors = useColors();
   const { state } = useAppState();
   const [range, setRange] = useState<Range>("1M");
   const current = ranges[range];

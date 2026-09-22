@@ -4,9 +4,11 @@ import type { LucideIcon } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { tap } from "@/lib/haptics";
-import { colors, radius, shadow, spacing } from "@/theme/tokens";
+import { radius, shadow, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles();
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
@@ -22,6 +24,8 @@ export function SectionHeader({
   onAction?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <View style={[styles.sectionHeader, style]}>
       <Text variant="heading">{title}</Text>
@@ -45,6 +49,8 @@ interface IconButtonProps extends Omit<PressableProps, "children"> {
 
 /** Round icon button, e.g. the notification bell. */
 export function IconButton({ icon: Icon, label, size = 40, tone = "light", onPress, ...props }: IconButtonProps) {
+  const styles = useStyles();
+  const colors = useColors();
   const dark = tone === "dark";
   return (
     <Pressable
@@ -78,9 +84,11 @@ interface ButtonProps extends Omit<PressableProps, "children" | "style"> {
 
 /** Pill button used for primary and secondary actions. */
 export function Button({ label, tone = "dark", icon: Icon, style, block, disabled, onPress, ...props }: ButtonProps) {
+  const styles = useStyles();
+  const colors = useColors();
   const palette = {
-    dark: { bg: colors.ink, fg: "#fff" },
-    light: { bg: colors.surface, fg: colors.violet },
+    dark: { bg: colors.ink, fg: colors.onInk },
+    light: { bg: colors.raised, fg: colors.violet },
     violet: { bg: colors.violet, fg: "#fff" },
   }[tone];
 
@@ -114,6 +122,8 @@ export function Button({ label, tone = "dark", icon: Icon, style, block, disable
 
 /** Filter chip. */
 export function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const styles = useStyles();
+  const colors = useColors();
   return (
     <Pressable
       accessibilityRole="button"
@@ -128,7 +138,7 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
         pressed && styles.pressed,
       ]}
     >
-      <Text variant="label" color={selected ? "#fff" : colors.inkMuted}>
+      <Text variant="label" color={selected ? colors.onInk : colors.inkMuted}>
         {label}
       </Text>
     </Pressable>
@@ -149,6 +159,7 @@ export function IconTile({
   size?: number;
   mark?: string;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.tile, { width: size, height: size, backgroundColor: bg, borderRadius: size * 0.3 }]}>
       {Icon ? <Icon size={size * 0.46} color={fg} strokeWidth={2} /> : null}
@@ -161,7 +172,7 @@ export function IconTile({
   );
 }
 
-export const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -180,6 +191,7 @@ export const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill },
-  tile: { alignItems: "center", justifyContent: "center" },
+  // Hairline keeps dark tiles (e.g. Netflix) distinct from a dark surface.
+  tile: { alignItems: "center", justifyContent: "center", borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   pressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
-});
+}));

@@ -1,10 +1,12 @@
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import { Link, Stack } from "expo-router";
 
 import { Text } from "@/components/text";
-import { colors } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export default function NotFound() {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <>
       <Stack.Screen options={{ title: "Not found" }} />
@@ -20,7 +22,7 @@ export default function NotFound() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16, backgroundColor: colors.background },
   link: { paddingVertical: 12 },
-});
+}));

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChartPie, ChevronRight, Search, X } from "lucide-react-native";
 
@@ -13,11 +13,14 @@ import { categoryStyle, type Category } from "@/data/mock";
 import { groupByDay } from "@/lib/group";
 import { spendingByCategory } from "@/lib/insights";
 import { useAppState } from "@/state/app-state";
-import { colors, fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 type Filter = "All" | "Income" | Category;
 
 export default function ActivityScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { state } = useAppState();
   const params = useLocalSearchParams<{ category?: string }>();
   const [query, setQuery] = useState("");
@@ -165,7 +168,7 @@ export default function ActivityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   header: { paddingHorizontal: spacing.xl, gap: 12, paddingBottom: 12 },
   search: {
     flexDirection: "row",
@@ -194,4 +197,4 @@ const styles = StyleSheet.create({
   insightsTitle: { flexDirection: "row", alignItems: "center", gap: 8 },
   total: { flex: 1, gap: 4, paddingVertical: 14 },
   day: { paddingHorizontal: 4 },
-});
+}));

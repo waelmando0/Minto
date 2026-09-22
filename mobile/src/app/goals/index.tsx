@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus } from "lucide-react-native";
@@ -9,9 +9,12 @@ import { PageHeader } from "@/components/page-header";
 import { Text } from "@/components/text";
 import { Button, Card, IconButton } from "@/components/ui";
 import { useAppState } from "@/state/app-state";
-import { colors, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 export default function GoalsScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { state } = useAppState();
   const insets = useSafeAreaInsets();
   const saved = state.goals.reduce((sum, g) => sum + g.saved, 0);
@@ -62,11 +65,11 @@ export default function GoalsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background },
   gutter: { paddingHorizontal: spacing.xl },
   content: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, gap: spacing.xl },
   summary: { gap: 4 },
   row: { flexDirection: "row", alignItems: "baseline" },
   empty: { gap: 8, paddingVertical: 24 },
-});
+}));

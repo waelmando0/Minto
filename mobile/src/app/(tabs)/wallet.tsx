@@ -1,4 +1,4 @@
-import { Pressable, Share, StyleSheet, View } from "react-native";
+import { Pressable, Share, View } from "react-native";
 import { useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy, Share2 } from "lucide-react-native";
@@ -11,7 +11,8 @@ import { Button, Card, IconTile, SectionHeader } from "@/components/ui";
 import { paymentMethods, user } from "@/data/mock";
 import { tap } from "@/lib/haptics";
 import { useAppState } from "@/state/app-state";
-import { colors, radius } from "@/theme/tokens";
+import { radius } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 const RECEIVE_DETAILS = [
   { label: "Account holder", value: user.name },
@@ -20,6 +21,8 @@ const RECEIVE_DETAILS = [
 ];
 
 export default function WalletScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { state, dispatch } = useAppState();
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -135,7 +138,7 @@ export default function WalletScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   accountCard: { borderRadius: radius.xl, padding: 20, height: 170, justifyContent: "space-between" },
   accountTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -145,10 +148,10 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#D7D7DC",
+    borderColor: colors.radioOff,
     alignItems: "center",
     justifyContent: "center",
   },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.violet },
   detail: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 4 },
-});
+}));

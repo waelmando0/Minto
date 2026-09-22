@@ -1,4 +1,4 @@
-import { Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Platform, ScrollView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CirclePlus, Trash2 } from "lucide-react-native";
@@ -12,7 +12,8 @@ import { Button, Card, IconButton } from "@/components/ui";
 import { goalProgress, templateById } from "@/data/goals";
 import { formatCurrency } from "@/lib/format";
 import { useAppState } from "@/state/app-state";
-import { colors, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
+import { makeStyles, useColors } from "@/theme/theme";
 
 function confirmDelete(name: string, saved: number, onConfirm: () => void) {
   const message =
@@ -28,6 +29,8 @@ function confirmDelete(name: string, saved: number, onConfirm: () => void) {
 }
 
 export default function GoalDetailScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { state, dispatch } = useAppState();
   const insets = useSafeAreaInsets();
@@ -132,7 +135,7 @@ export default function GoalDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.background },
   gutter: { paddingHorizontal: spacing.xl },
   content: { padding: spacing.xl, gap: spacing.xl },
@@ -141,4 +144,4 @@ const styles = StyleSheet.create({
   stats: { flexDirection: "row", alignItems: "center" },
   stat: { flex: 1, gap: 4, alignItems: "center" },
   divider: { width: 1, alignSelf: "stretch", backgroundColor: colors.border },
-});
+}));
