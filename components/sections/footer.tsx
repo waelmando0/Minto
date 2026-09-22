@@ -37,17 +37,22 @@ export function Footer() {
         </div>
       </Container>
 
-      <div className="relative -mt-4 aspect-[1179/342] min-h-[280px] sm:-mt-10">
+      {/*
+        The plate is 1179×400. Its height follows the width (never less than
+        300px) and object-cover crops the sides, so the painted-out spot the
+        store buttons sit on stays at 50% / 43% at every size.
+      */}
+      <div className="relative -mt-6 h-[max(300px,33.9vw)] sm:-mt-10 lg:-mt-[5vw]">
         <Image
           src={footer.image.src}
           alt={footer.image.alt}
           fill
           quality={90}
-          sizes="100vw"
-          className="object-cover [mask-image:linear-gradient(to_bottom,transparent,#000_35%)]"
+          sizes="(min-width: 885px) 100vw, 885px"
+          className="object-cover [mask-image:linear-gradient(to_bottom,transparent,#000_22%)]"
         />
-        <StoreButtons className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex-nowrap" />
-        <p className="absolute inset-x-0 bottom-4 text-center text-[11px] text-white/80 [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]">
+        <StoreButtons className="absolute top-[43%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex-nowrap" />
+        <p className="absolute inset-x-0 bottom-4 px-4 text-center text-[11px] text-white/85 [text-shadow:0_1px_8px_rgb(0_0_0/0.6)]">
           © {new Date().getFullYear()} {mintoMeta.name} Financial, Inc. All rights reserved.
         </p>
       </div>
