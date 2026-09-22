@@ -42,7 +42,7 @@ export default function HomeScreen() {
         </View>
         <View style={styles.headerActions}>
           <IconButton icon={Bell} label="Notifications" onPress={() => router.navigate("/activity")} />
-          <IconButton icon={CircleUserRound} label="Accounts and cards" onPress={() => router.navigate("/wallet")} />
+          <IconButton icon={CircleUserRound} label="Profile" onPress={() => router.push("/profile")} />
         </View>
       </View>
 
