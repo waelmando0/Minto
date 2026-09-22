@@ -1,0 +1,27 @@
+import { fireEvent, render, screen } from "@testing-library/react-native";
+
+import { BalanceToggle, Money } from "@/components/money";
+import { AppStateProvider } from "@/state/app-state";
+import { SessionProvider } from "@/state/session";
+
+describe("Money", () => {
+  it("hides and reveals balances from the eye toggle", async () => {
+    await render(
+      <SessionProvider>
+        <AppStateProvider>
+          <Money value={36862.76} />
+          <BalanceToggle color="#000" />
+        </AppStateProvider>
+      </SessionProvider>,
+    );
+
+    expect(await screen.findByText("$36,862.76")).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole("button", { name: "Hide balances" }));
+    expect(screen.getByText("$••,•••.••")).toBeTruthy();
+    expect(screen.queryByText("$36,862.76")).toBeNull();
+
+    await fireEvent.press(screen.getByRole("button", { name: "Show balances" }));
+    expect(screen.getByText("$36,862.76")).toBeTruthy();
+  });
+});
