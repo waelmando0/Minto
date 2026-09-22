@@ -3,7 +3,7 @@ import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, View } from "r
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, X, type LucideIcon } from "lucide-react-native";
+import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, RotateCcw, X, type LucideIcon } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { Card, IconButton } from "@/components/ui";
@@ -15,15 +15,15 @@ import { colors, radius, spacing } from "@/theme/tokens";
 
 const HELP_URL = "https://creatorix-w5pn.vercel.app/#faq";
 
-function confirmSignOut(onConfirm: () => void) {
+/** Destructive confirmation; Alert.alert has no buttons on web, so use confirm() there. */
+function confirmAction(title: string, message: string, action: string, onConfirm: () => void) {
   if (Platform.OS === "web") {
-    // Alert.alert has no buttons on web.
-    if (globalThis.confirm?.("Sign out of Minto?")) onConfirm();
+    if (globalThis.confirm?.(`${title}\n\n${message}`)) onConfirm();
     return;
   }
-  Alert.alert("Sign out of Minto?", "You'll need a new code to sign back in.", [
+  Alert.alert(title, message, [
     { text: "Cancel", style: "cancel" },
-    { text: "Sign out", style: "destructive", onPress: onConfirm },
+    { text: action, style: "destructive", onPress: onConfirm },
   ]);
 }
 
@@ -115,10 +115,30 @@ export default function ProfileScreen() {
 
       <Card style={{ paddingVertical: 6 }}>
         <Row
+          icon={RotateCcw}
+          label="Reset demo data"
+          right={<View />}
+          onPress={() =>
+            confirmAction(
+              "Reset demo data?",
+              "Balances and transactions go back to the starting demo data.",
+              "Reset",
+              () => dispatch({ type: "reset" }),
+            )
+          }
+        />
+        <Row
           icon={LogOut}
           label="Sign out"
           right={<View />}
-          onPress={() => confirmSignOut(() => void signOut())}
+          onPress={() =>
+            confirmAction(
+              "Sign out of Minto?",
+              "Your data on this device is removed. You'll need a new code to sign back in.",
+              "Sign out",
+              () => void signOut(),
+            )
+          }
         />
       </Card>
 

@@ -32,9 +32,11 @@ npm test           # jest-expo + React Native Testing Library
 | **Wallet** | Account cards, a selectable payment method, and receive details. Tap a detail to copy it; Share sends all of them. |
 | **Transfer** (modal) | One amount sheet for Send, Top Up, Deposit and Withdraw. It has its own keypad and validates the $10–$50,000 limits and available cash. A success state follows. |
 | **Transaction** (modal) | Details for any transaction row. |
-| **Profile** (modal, from the avatar on Home) | Your details, hide balances, accounts, Help & FAQ (opens the website), and Sign out. |
+| **Profile** (modal, from the avatar on Home) | Your details, hide balances, accounts, Help & FAQ (opens the website), Reset demo data, and Sign out. |
 
-The eye button on any balance hides every amount in the app. Transfers really update the balances and add a transaction, held in memory for the session.
+The eye button on any balance hides every amount in the app. Transfers really update the balances and add a transaction.
+
+**Data is saved per account.** Balances, transactions and preferences are stored on the device with AsyncStorage and restored at launch. Signing out wipes them from the device, and **Profile → Reset demo data** restores the starting data. Saves are versioned: if `AppState` changes shape, bump `VERSION` in `src/lib/persist.ts` and older saves are ignored rather than breaking the app.
 
 ## Structure
 
@@ -51,7 +53,8 @@ src/
   state/app-state.tsx  # reducer + context: balances, transactions, hide-balances, payment method
   state/session.tsx    # session restore / sign in / sign out, persisted in secure storage
   data/mock.ts         # mock user, accounts, transactions, holdings, banks
-  lib/                 # formatting, keypad/amount logic, chart series, haptics, mock auth API, secure storage
+  lib/                 # formatting, keypad/amount logic, chart series, haptics, mock auth API,
+                       # secure storage (session) and persist.ts (saved app data)
   theme/tokens.ts      # colours, radii, spacing, fonts shared with the website
   __tests__/           # unit tests (formatting, reducer) and a component test
 ```
@@ -60,4 +63,25 @@ src/
 
 - **Backend:** replace `src/data/mock.ts` and the reducer's `transfer` action with API calls. Screens read everything through `useAppState()`, so they won't need changes.
 - **Auth:** replace `requestCode` / `verifyCode` in `src/lib/auth.ts` with your provider's email OTP endpoints, and remove the demo-code hint on the Verify screen.
-- **Release:** build and submit with EAS (`npx eas-cli@latest build`). The bundle identifier and package are `app.minto.mobile` in `app.json`.
+- **Release:** see below.
+
+## Building for the stores (EAS)
+
+`eas.json` defines two profiles:
+
+| Profile | Use |
+|---|---|
+| `preview` | Internal testing: an Android APK and an ad-hoc iOS build, shared by link |
+| `production` | Store builds; the build number increments automatically |
+
+```bash
+cd mobile
+npx eas-cli@latest login                              # your Expo account
+npx eas-cli@latest init                               # links the project and writes its ID into app.json
+npx eas-cli@latest build --profile preview --platform android
+npx eas-cli@latest build --profile production --platform all
+npx eas-cli@latest submit --platform ios              # App Store Connect (Apple Developer account needed)
+npx eas-cli@latest submit --platform android          # Google Play (Play Console account needed)
+```
+
+The bundle identifier and package are `app.minto.mobile` (in `app.json`). Change them before your first store build if you own a different domain.

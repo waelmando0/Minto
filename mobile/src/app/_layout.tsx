@@ -12,7 +12,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 
-import { AppStateProvider } from "@/state/app-state";
+import { AppStateProvider, useAppState } from "@/state/app-state";
 import { SessionProvider, useSession } from "@/state/session";
 import { colors } from "@/theme/tokens";
 
@@ -41,12 +41,14 @@ export default function RootLayout() {
 /** Signed-in users get the app; everyone else only reaches the auth screens. */
 function RootNavigator() {
   const { status } = useSession();
+  const { ready } = useAppState();
+  const loading = status === "loading" || !ready;
 
   useEffect(() => {
-    if (status !== "loading") void SplashScreen.hideAsync();
-  }, [status]);
+    if (!loading) void SplashScreen.hideAsync();
+  }, [loading]);
 
-  if (status === "loading") return null;
+  if (loading) return null;
   const signedIn = status === "signedIn";
 
   return (
