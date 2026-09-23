@@ -28,7 +28,6 @@ import {
   fetchSnapshot,
   remoteCloseGoal,
   remoteCreateGoal,
-  remoteReset,
   remoteTransfer,
   type RemoteSnapshot,
 } from "@/lib/remote";
@@ -164,7 +163,8 @@ export interface AppActions {
   /** Resolves to the new goal's id. */
   createGoal: (input: { name: string; template: GoalTemplateId; target: number }) => Promise<string>;
   closeGoal: (id: string) => Promise<void>;
-  resetData: () => Promise<void>;
+  /** Demo mode only: back to the starting demo data. Real accounts have no reset. */
+  resetData?: () => Promise<void>;
   /** Re-fetches from Supabase; a no-op in demo mode. */
   refresh: () => Promise<void>;
 }
@@ -293,7 +293,6 @@ export function AppStateProvider({ children, initial = initialState }: { childre
       transfer: (input) => run(() => remoteTransfer(supabase, input)),
       createGoal: (input) => run(() => remoteCreateGoal(supabase, input)),
       closeGoal: (id) => run(() => remoteCloseGoal(supabase, id)),
-      resetData: () => run(() => remoteReset(supabase)),
       refresh,
     };
   }, [supabase, refresh]);

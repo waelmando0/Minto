@@ -157,7 +157,3 @@ export async function remoteCreateGoal(
 export async function remoteCloseGoal(supabase: SupabaseClient, goalId: string) {
   await unwrap(supabase.rpc("close_goal", { p_goal_id: goalId }));
 }
-
-export async function remoteReset(supabase: SupabaseClient) {
-  await unwrap(supabase.rpc("reset_demo_data"));
-}

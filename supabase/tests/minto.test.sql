@@ -3,7 +3,7 @@
 \set ON_ERROR_STOP on
 \set QUIET on
 
--- Two users; the signup trigger seeds each with demo data.
+-- Two users; the signup trigger gives each a profile and two empty accounts.
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'alice@example.com', '{"full_name": "Alice"}'),
   ('00000000-0000-0000-0000-00000000000b', 'bob@example.com', '{}');
@@ -39,32 +39,44 @@ grant execute on function pg_temp.expect_error(text, text) to authenticated, ano
 select pg_temp.check((select count(*) = 2 from public.profiles), 'signup creates a profile per user');
 select pg_temp.check((select full_name = 'Alice' from public.profiles where id = '00000000-0000-0000-0000-00000000000a'), 'profile takes full_name from signup metadata');
 select pg_temp.check((select count(*) = 4 from public.accounts), 'signup creates two accounts per user');
-select pg_temp.check((select count(*) = 24 from public.transactions), 'signup seeds 12 demo transactions per user');
+select pg_temp.check((select bool_and(balance = 0) from public.accounts), 'new accounts start at $0.00');
+select pg_temp.check((select bool_and(last4 ~ '^[0-9]{4}$') from public.accounts), 'new accounts get a 4-digit label');
+select pg_temp.check((select bool_and(investment_cash = 0) from public.profiles), 'new profiles have no investment cash');
+select pg_temp.check((select count(*) = 0 from public.transactions), 'signup adds no transactions');
+select pg_temp.check((select count(*) = 0 from public.goals), 'signup adds no goals');
+select pg_temp.check(to_regprocedure('public.seed_demo_data(uuid)') is null, 'demo seeding is removed');
+select pg_temp.check(to_regprocedure('public.reset_demo_data()') is null, 'demo reset is removed');
+
+-- ---------------------------------------------------------------------------
+-- Bob creates a goal (used below to check Alice can't touch it)
+-- ---------------------------------------------------------------------------
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000b', false);
+select set_config('app.bob_goal', (select id::text from public.create_goal('Bike', 'tech', 500)), false);
 
 -- ---------------------------------------------------------------------------
 -- As Alice
 -- ---------------------------------------------------------------------------
-set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a', false);
 
 select pg_temp.check((select count(*) = 2 from public.accounts), 'RLS: Alice sees only her 2 accounts');
-select pg_temp.check((select count(*) = 12 from public.transactions), 'RLS: Alice sees only her 12 transactions');
-select pg_temp.check((select count(*) = 2 from public.goals), 'RLS: Alice sees only her 2 goals');
-select pg_temp.check(
-  (select sum(balance) = 36862.76 from public.accounts),
-  'demo balances match the website ($36,862.76)'
-);
+select pg_temp.check((select count(*) = 0 from public.goals), 'RLS: Alice doesn''t see Bob''s goal');
 
 select pg_temp.expect_error($$update public.accounts set balance = 1000000$$, 'permission denied');
 select pg_temp.expect_error($$insert into public.transactions (user_id, account_kind, merchant, category, amount) values (auth.uid(), 'personal', 'x', 'Transfer', 5)$$, 'permission denied');
 select pg_temp.expect_error($$delete from public.goals$$, 'permission denied');
-select pg_temp.expect_error($$select public.seed_demo_data(auth.uid())$$, 'permission denied');
+select pg_temp.expect_error($$select public.reset_demo_data()$$, 'does not exist');
+
+-- An empty account can't send money until it's funded.
+select pg_temp.expect_error($$select public.transfer('send', 20, 'Maria')$$, 'Not enough available cash');
+select public.transfer('topup', 12000);
+select pg_temp.check((select balance = 12000 from public.accounts where kind = 'personal'), 'top up funds Personal');
 
 -- send
 select public.transfer('send', 250, 'Maria');
-select pg_temp.check((select balance = 11640.76 from public.accounts where kind = 'personal'), 'send debits Personal');
+select pg_temp.check((select balance = 11750 from public.accounts where kind = 'personal'), 'send debits Personal');
 select pg_temp.check(
-  (select merchant = 'Maria' and amount = -250 and category = 'Transfer' from public.transactions order by created_at desc limit 1),
+  (select merchant = 'Maria' and amount = -250 and category = 'Transfer' from public.transactions order by created_at desc, amount limit 1),
   'send records a Transfer to the recipient'
 );
 select pg_temp.expect_error($$select public.transfer('send', 20, '  ')$$, 'sending to');
@@ -75,13 +87,14 @@ select pg_temp.expect_error($$select public.transfer('send', null, 'Maria')$$, '
 
 -- top up, deposit, withdraw
 select public.transfer('topup', 100);
-select pg_temp.check((select balance = 11740.76 from public.accounts where kind = 'personal'), 'top up credits Personal');
+select pg_temp.check((select balance = 11850 from public.accounts where kind = 'personal'), 'top up credits Personal');
 select public.transfer('deposit', 100.004);
-select pg_temp.check((select investment_cash = 2723 from public.profiles), 'deposit moves cash into investing (rounded to cents)');
-select pg_temp.check((select balance = 11640.76 from public.accounts where kind = 'personal'), 'deposit debits Personal');
+select pg_temp.check((select investment_cash = 100 from public.profiles), 'deposit moves cash into investing (rounded to cents)');
+select pg_temp.check((select balance = 11750 from public.accounts where kind = 'personal'), 'deposit debits Personal');
 select pg_temp.expect_error($$select public.transfer('withdraw', 5000)$$, 'Not enough available cash');
 select public.transfer('withdraw', 23);
-select pg_temp.check((select investment_cash = 2700 from public.profiles), 'withdraw takes from investment cash');
+select pg_temp.check((select investment_cash = 77 from public.profiles), 'withdraw takes from investment cash');
+select pg_temp.check((select balance = 11773 from public.accounts where kind = 'personal'), 'withdraw credits Personal');
 
 -- goals
 select pg_temp.expect_error($$select public.create_goal('   ', 'vacation', 1000)$$, 'name');
@@ -90,8 +103,9 @@ select pg_temp.expect_error($$select public.create_goal('Trip', 'vacation', 2000
 select public.create_goal('Trip', 'vacation', 1000);
 select public.transfer('goal', 300, null, (select id from public.goals where name = 'Trip'));
 select pg_temp.check((select saved = 300 from public.goals where name = 'Trip'), 'add money raises goal savings');
+select pg_temp.check((select balance = 11473 from public.accounts where kind = 'personal'), 'goal contribution debits Personal');
 select pg_temp.check(
-  (select category = 'Savings' and goal_id is not null from public.transactions order by created_at desc limit 1),
+  (select category = 'Savings' and goal_id is not null from public.transactions where note = 'Added to savings goal'),
   'goal contribution is recorded as Savings and linked to the goal'
 );
 select pg_temp.expect_error(
@@ -100,28 +114,20 @@ select pg_temp.expect_error(
 );
 select public.close_goal((select id from public.goals where name = 'Trip'));
 select pg_temp.check((select count(*) = 0 from public.goals where name = 'Trip'), 'close_goal deletes the goal');
-select pg_temp.check((select balance = 11640.76 - 300 + 300 + 23 from public.accounts where kind = 'personal'), 'close_goal returns savings to Personal');
+select pg_temp.check((select balance = 11773 from public.accounts where kind = 'personal'), 'close_goal returns savings to Personal');
+select pg_temp.check((select count(*) = 7 from public.transactions), 'every movement is in Alice''s history');
 
 -- Alice cannot touch Bob's goal.
-reset role;
-select set_config('app.bob_goal', (select id::text from public.goals where user_id = '00000000-0000-0000-0000-00000000000b' limit 1), false);
-set role authenticated;
 select pg_temp.expect_error(format($$select public.transfer('goal', 50, null, %L)$$, current_setting('app.bob_goal')), 'no longer exists');
 select pg_temp.expect_error(format($$select public.close_goal(%L)$$, current_setting('app.bob_goal')), 'no longer exists');
-
--- reset
-select public.reset_demo_data();
-select pg_temp.check((select sum(balance) = 36862.76 from public.accounts), 'reset restores demo balances');
-select pg_temp.check((select count(*) = 12 from public.transactions), 'reset restores demo transactions');
-select pg_temp.check((select count(*) = 2 from public.goals), 'reset restores demo goals');
-select pg_temp.check((select investment_cash = 2623 from public.profiles), 'reset restores investment cash');
 
 -- ---------------------------------------------------------------------------
 -- Bob was untouched, and anonymous callers get nothing
 -- ---------------------------------------------------------------------------
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000b', false);
-select pg_temp.check((select sum(balance) = 36862.76 from public.accounts), 'Bob''s balances are untouched by Alice');
-select pg_temp.check((select count(*) = 12 from public.transactions), 'Bob''s transactions are untouched by Alice');
+select pg_temp.check((select sum(balance) = 0 from public.accounts), 'Bob''s balances are untouched by Alice');
+select pg_temp.check((select count(*) = 0 from public.transactions), 'RLS: Bob doesn''t see Alice''s transactions');
+select pg_temp.check((select count(*) = 1 from public.goals), 'Bob''s goal is untouched by Alice');
 
 select set_config('request.jwt.claim.sub', '', false);
 select pg_temp.expect_error($$select public.transfer('topup', 100)$$, 'Not signed in');
