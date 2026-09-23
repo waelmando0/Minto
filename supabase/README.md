@@ -47,9 +47,9 @@ Sign in with your email, enter the code, and you'll see your two accounts at $0.
   update public.profiles set investment_cash = 0;
   commit;
   ```
-- **Top up is still pretend money.** It credits the account without charging anyone.
+- **Top up is still pretend money.** It credits the account without charging anyone; the app labels it as test money.
 - **Balances come from somewhere real.** Replace `transfer()` with calls to your payments / banking provider. Keep the same pattern: validation and balance changes happen on the server, never in the app.
-- Holdings, the investment chart and linked bank accounts are still mock data in the app.
+- Holdings, the investment chart, linked banks and bank details for receiving money exist only in demo mode. Real accounts see empty states until those are connected.
 
 ## Tests
 

@@ -15,6 +15,7 @@ To use real email sign-in codes and a Postgres database, follow [`supabase/READM
 | Transfers & goals | Applied locally | Server functions validate and apply them, then the app re-fetches |
 | Errors | Checked in the app | The server's message is shown (e.g. "Not enough available cash") |
 | New accounts | Start with the demo data | Start empty at $0.00; **Reset demo data** isn't offered |
+| Sample content | Linked banks, bank details to receive money, investment chart and holdings | Never shown. Wallet says no bank is linked yet, Invest shows an empty state, and Top up is labelled as test money |
 
 ## Run it
 

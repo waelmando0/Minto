@@ -14,8 +14,9 @@ import { useAppState } from "@/state/app-state";
 import { radius } from "@/theme/tokens";
 import { makeStyles, useColors } from "@/theme/theme";
 
-const RECEIVE_DETAILS = [
-  { label: "Account holder", value: user.name },
+/** Sample details for the demo. Real accounts have no bank details until a banking partner is connected. */
+const demoReceiveDetails = (holder: string) => [
+  { label: "Account holder", value: holder },
   { label: "Account number", value: "4829 1047 2207" },
   { label: "Routing number", value: "026 073 150" },
 ];
@@ -23,8 +24,11 @@ const RECEIVE_DETAILS = [
 export default function WalletScreen() {
   const colors = useColors();
   const styles = useStyles();
-  const { state, dispatch } = useAppState();
+  const { state, dispatch, mode } = useAppState();
   const [copied, setCopied] = useState<string | null>(null);
+  // Real accounts never show the sample banks or bank details.
+  const demo = mode === "demo";
+  const receiveDetails = demoReceiveDetails(state.displayName ?? user.name);
 
   return (
     <Screen>
@@ -58,81 +62,96 @@ export default function WalletScreen() {
 
       <Card>
         <SectionHeader title="Payment methods" />
-        <View style={{ marginTop: 8 }} accessibilityRole="radiogroup">
-          {paymentMethods.map((method) => {
-            const selected = method.id === state.paymentMethodId;
-            return (
-              <Pressable
-                key={method.id}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: selected }}
-                accessibilityLabel={`${method.bank}, ${method.account}`}
-                onPress={() => {
-                  tap();
-                  dispatch({ type: "selectPaymentMethod", id: method.id });
-                }}
-                style={({ pressed }) => [styles.method, pressed && { opacity: 0.6 }]}
-              >
-                <IconTile bg={method.color} fg="#fff" mark={method.mark} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text variant="label" weight="semibold">
-                    {method.bank}
-                  </Text>
-                  <Text variant="caption" color={colors.inkSubtle}>
-                    {method.account}
-                  </Text>
-                </View>
-                <View style={[styles.radio, selected && { borderColor: colors.violet }]}>
-                  {selected ? <View style={styles.radioDot} /> : null}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+        {demo ? (
+          <View style={{ marginTop: 8 }} accessibilityRole="radiogroup">
+            {paymentMethods.map((method) => {
+              const selected = method.id === state.paymentMethodId;
+              return (
+                <Pressable
+                  key={method.id}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: selected }}
+                  accessibilityLabel={`${method.bank}, ${method.account}`}
+                  onPress={() => {
+                    tap();
+                    dispatch({ type: "selectPaymentMethod", id: method.id });
+                  }}
+                  style={({ pressed }) => [styles.method, pressed && { opacity: 0.6 }]}
+                >
+                  <IconTile bg={method.color} fg="#fff" mark={method.mark} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text variant="label" weight="semibold">
+                      {method.bank}
+                    </Text>
+                    <Text variant="caption" color={colors.inkSubtle}>
+                      {method.account}
+                    </Text>
+                  </View>
+                  <View style={[styles.radio, selected && { borderColor: colors.violet }]}>
+                    {selected ? <View style={styles.radioDot} /> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : (
+          <Text variant="caption" color={colors.inkSubtle} style={{ marginTop: 8 }}>
+            No bank accounts linked yet. Linking a bank to move money in and out is coming soon.
+          </Text>
+        )}
       </Card>
 
       <Card style={{ gap: 12 }}>
         <SectionHeader title="Receive money" />
-        <Text variant="caption" color={colors.inkSubtle}>
-          Share these details to get paid into your Personal account.
-        </Text>
-        {RECEIVE_DETAILS.map((d) => (
-          <Pressable
-            key={d.label}
-            accessibilityRole="button"
-            accessibilityLabel={`Copy ${d.label}: ${d.value}`}
-            onPress={() => {
-              tap();
-              void Clipboard.setStringAsync(d.value);
-              setCopied(d.label);
-              setTimeout(() => setCopied((current) => (current === d.label ? null : current)), 1500);
-            }}
-            style={({ pressed }) => [styles.detail, pressed && { opacity: 0.6 }]}
-          >
+        {demo ? (
+          <>
             <Text variant="caption" color={colors.inkSubtle}>
-              {d.label}
+              Share these details to get paid into your Personal account.
             </Text>
-            <View style={styles.row}>
-              <Text variant="label" weight="semibold">
-                {d.value}
-              </Text>
-              {copied === d.label ? (
-                <Check size={14} color={colors.positive} />
-              ) : (
-                <Copy size={14} color={colors.inkFaint} />
-              )}
-            </View>
-          </Pressable>
-        ))}
-        <Button
-          label="Share details"
-          icon={Share2}
-          onPress={() =>
-            void Share.share({
-              message: RECEIVE_DETAILS.map((d) => `${d.label}: ${d.value}`).join("\n"),
-            })
-          }
-        />
+            {receiveDetails.map((d) => (
+              <Pressable
+                key={d.label}
+                accessibilityRole="button"
+                accessibilityLabel={`Copy ${d.label}: ${d.value}`}
+                onPress={() => {
+                  tap();
+                  void Clipboard.setStringAsync(d.value);
+                  setCopied(d.label);
+                  setTimeout(() => setCopied((current) => (current === d.label ? null : current)), 1500);
+                }}
+                style={({ pressed }) => [styles.detail, pressed && { opacity: 0.6 }]}
+              >
+                <Text variant="caption" color={colors.inkSubtle}>
+                  {d.label}
+                </Text>
+                <View style={styles.row}>
+                  <Text variant="label" weight="semibold">
+                    {d.value}
+                  </Text>
+                  {copied === d.label ? (
+                    <Check size={14} color={colors.positive} />
+                  ) : (
+                    <Copy size={14} color={colors.inkFaint} />
+                  )}
+                </View>
+              </Pressable>
+            ))}
+            <Button
+              label="Share details"
+              icon={Share2}
+              onPress={() =>
+                void Share.share({
+                  message: receiveDetails.map((d) => `${d.label}: ${d.value}`).join("\n"),
+                })
+              }
+            />
+          </>
+        ) : (
+          <Text variant="caption" color={colors.inkSubtle}>
+            Bank details for receiving money aren&apos;t available yet. They&apos;ll appear here once your account can
+            accept bank transfers.
+          </Text>
+        )}
       </Card>
     </Screen>
   );

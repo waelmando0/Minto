@@ -24,7 +24,7 @@ export default function TransferScreen() {
   const params = useLocalSearchParams<{ kind?: string; goalId?: string }>();
   const kind: TransferKind = KINDS.includes(params.kind as TransferKind) ? (params.kind as TransferKind) : "send";
   const config = transferConfig[kind];
-  const { state, actions } = useAppState();
+  const { state, actions, mode } = useAppState();
   const insets = useSafeAreaInsets();
 
   const [amount, setAmount] = useState("");
@@ -134,6 +134,12 @@ export default function TransferScreen() {
         <Text variant="caption" color={error ? colors.negative : colors.inkSubtle} align="center">
           {error ?? `Min. ${formatCurrency(transferLimits.min)} · Max. ${formatCurrency(transferLimits.max)} per transaction`}
         </Text>
+        {kind === "topup" && mode === "supabase" ? (
+          // No payment provider yet: be clear that top-ups aren't real money.
+          <Text variant="caption" color={colors.inkSubtle} align="center">
+            Test mode: top-ups add test money. No card or bank is charged.
+          </Text>
+        ) : null}
         {available !== undefined ? (
           <View style={styles.available}>
             <Text variant="caption" color={colors.inkSubtle}>
