@@ -2,6 +2,19 @@
 
 The Minto app for iOS and Android, built with **Expo SDK 57** (React Native 0.86), **Expo Router**, **TypeScript**, **react-native-svg** and **Lucide** icons. It uses the same design language as the website in the repo root.
 
+## Demo mode or Supabase
+
+With no configuration the app runs in **demo mode**: mock data on the device and a demo sign-in code (`246810`, shown on the Verify screen).
+
+To use real email sign-in codes and a Postgres database, follow [`supabase/README.md`](../supabase/README.md), then copy `.env.example` to `.env` and add your project URL and publishable key. The app switches automatically:
+
+| | Demo mode | Supabase |
+|---|---|---|
+| Sign-in | Accepts `246810` | Email one-time code (Supabase Auth) |
+| Data | Saved on the device | Postgres, protected by row-level security; the device copy is an offline cache |
+| Transfers & goals | Applied locally | Server functions validate and apply them, then the app re-fetches |
+| Errors | Checked in the app | The server's message is shown (e.g. "Not enough available cash") |
+
 ## Run it
 
 ```bash
@@ -77,8 +90,9 @@ src/
   state/session.tsx    # session restore / sign in / sign out, persisted in secure storage
   data/mock.ts         # mock user, accounts, transactions, holdings, banks
   data/goals.ts        # 12 goal templates, starter goals, validation
-  lib/                 # formatting, keypad/amount logic, chart series, spending insights, haptics, mock auth API,
-                       # secure storage (session) and persist.ts (saved app data)
+  lib/                 # formatting, keypad/amount logic, chart series, spending insights, haptics,
+                       # auth (Supabase OTP or demo), supabase.ts (client), remote.ts (queries + server functions),
+                       # secure storage (demo session) and persist.ts (saved app data / offline cache)
   theme/tokens.ts      # light + dark palettes, radii, spacing, fonts
   theme/theme.tsx      # ThemeProvider (System / Light / Dark, saved per device), useColors(), makeStyles()
   __tests__/           # unit tests (formatting, reducer) and a component test
@@ -86,8 +100,7 @@ src/
 
 ## Next steps
 
-- **Backend:** replace `src/data/mock.ts` and the reducer's `transfer` action with API calls. Screens read everything through `useAppState()`, so they won't need changes.
-- **Auth:** replace `requestCode` / `verifyCode` in `src/lib/auth.ts` with your provider's email OTP endpoints, and remove the demo-code hint on the Verify screen.
+- **Go live:** see "Before going live with real money" in [`supabase/README.md`](../supabase/README.md).
 - **Release:** see below.
 
 ## Building for the stores (EAS)

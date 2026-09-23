@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { Button, IconButton } from "@/components/ui";
-import { CODE_LENGTH, DEMO_CODE, requestCode, verifyCode } from "@/lib/auth";
+import { CODE_LENGTH, DEMO_CODE, isDemoAuth, requestCode, verifyCode } from "@/lib/auth";
 import { success, warn } from "@/lib/haptics";
 import { useSession } from "@/state/session";
 import { fonts, radius, spacing } from "@/theme/tokens";
@@ -125,11 +125,13 @@ export default function VerifyScreen() {
           </Text>
         </Pressable>
 
-        <View style={styles.demo}>
-          <Text variant="caption" color={colors.mintInk}>
-            Demo build: use code <Text variant="caption" weight="bold" color={colors.mintInk}>{DEMO_CODE}</Text>
-          </Text>
-        </View>
+        {isDemoAuth() ? (
+          <View style={styles.demo}>
+            <Text variant="caption" color={colors.mintInk}>
+              Demo build: use code <Text variant="caption" weight="bold" color={colors.mintInk}>{DEMO_CODE}</Text>
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <Button

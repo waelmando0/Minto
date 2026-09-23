@@ -24,13 +24,14 @@ export default function TransferScreen() {
   const params = useLocalSearchParams<{ kind?: string; goalId?: string }>();
   const kind: TransferKind = KINDS.includes(params.kind as TransferKind) ? (params.kind as TransferKind) : "send";
   const config = transferConfig[kind];
-  const { state, dispatch } = useAppState();
+  const { state, actions } = useAppState();
   const insets = useSafeAreaInsets();
 
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [error, setError] = useState<string>();
   const [done, setDone] = useState<number | null>(null);
+  const [pending, setPending] = useState(false);
 
   const goal = kind === "goal" ? state.goals.find((g) => g.id === params.goalId) : undefined;
   const available = availableFor(state, kind);
@@ -38,7 +39,8 @@ export default function TransferScreen() {
   const title = goal ? `Add to ${goal.name}` : config.title;
   const close = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
-  const submit = () => {
+  const submit = async () => {
+    if (pending) return;
     const message =
       (kind === "goal" && !goal ? "This goal no longer exists" : undefined) ??
       validateAmount(amount, { ...transferLimits, available }) ??
@@ -52,15 +54,22 @@ export default function TransferScreen() {
       return;
     }
     const value = Number(amount);
-    dispatch({
-      type: "transfer",
-      kind,
-      amount: value,
-      counterparty: kind === "send" ? recipient : undefined,
-      goalId: goal?.id,
-    });
-    success();
-    setDone(value);
+    setPending(true);
+    try {
+      await actions.transfer({
+        kind,
+        amount: value,
+        counterparty: kind === "send" ? recipient : undefined,
+        goalId: goal?.id,
+      });
+      success();
+      setDone(value);
+    } catch (e) {
+      warn();
+      setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
+    } finally {
+      setPending(false);
+    }
   };
 
   if (done !== null) {
@@ -150,7 +159,7 @@ export default function TransferScreen() {
             setError(undefined);
           }}
         />
-        <Button label={config.verb} block onPress={submit} />
+        <Button label={pending ? "Processing…" : config.verb} block disabled={pending} onPress={() => void submit()} />
       </View>
     </View>
   );

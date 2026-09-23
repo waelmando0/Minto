@@ -9,6 +9,7 @@ import { Text } from "@/components/text";
 import { Card, IconButton } from "@/components/ui";
 import { user } from "@/data/mock";
 import { tap } from "@/lib/haptics";
+import { showMessage } from "@/lib/notify";
 import { useAppState } from "@/state/app-state";
 import { useSession } from "@/state/session";
 import { radius, spacing } from "@/theme/tokens";
@@ -112,8 +113,9 @@ export default function ProfileScreen() {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { session, signOut } = useSession();
-  const { state, dispatch } = useAppState();
-  const initials = user.name
+  const { state, dispatch, actions } = useAppState();
+  const name = state.displayName ?? user.name;
+  const initials = name
     .split(" ")
     .map((part) => part[0])
     .join("");
@@ -135,7 +137,7 @@ export default function ProfileScreen() {
             {initials}
           </Text>
         </View>
-        <Text variant="title">{user.name}</Text>
+        <Text variant="title">{name}</Text>
         <Text color={colors.inkSubtle}>{session?.email ?? user.email}</Text>
       </View>
 
@@ -174,7 +176,10 @@ export default function ProfileScreen() {
               "Reset demo data?",
               "Balances and transactions go back to the starting demo data.",
               "Reset",
-              () => dispatch({ type: "reset" }),
+              () =>
+                void actions
+                  .resetData()
+                  .catch((e: unknown) => showMessage("Couldn't reset", e instanceof Error ? e.message : "Try again.")),
             )
           }
         />
