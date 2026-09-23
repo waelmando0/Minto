@@ -25,5 +25,5 @@ begin
 end;
 $$;
 
-drop function public.reset_demo_data();
-drop function public.seed_demo_data(uuid);
+drop function if exists public.reset_demo_data();
+drop function if exists public.seed_demo_data(uuid);
