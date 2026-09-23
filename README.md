@@ -19,6 +19,10 @@ The site URL used for canonical URLs, the sitemap and Open Graph tags defaults t
 
 The navbar's **Login** signs people in with the same Supabase project as the mobile app. It emails a one-time code, and the **/account** page then shows their balances, recent activity and goals. The page is read-only; money moves only in the app. Without Supabase settings the site still builds and works, and Login says sign-in isn't available.
 
+Codes are requested and checked **from the visitor's browser**, not the server. Supabase Auth rate-limits sign-in per IP address, and from the server every visitor would share the host's IPs.
+
+Every response also sends security headers (`next.config.ts`). They block framing (clickjacking) and MIME sniffing, send a strict referrer policy, turn off camera, microphone and location access, and set HSTS.
+
 1. Set up the project as described in [`supabase/README.md`](supabase/README.md).
 2. Copy `.env.example` to `.env.local` (for Vercel: **Settings → Environment Variables**) and fill in **Project Settings → API Keys**:
    ```bash
@@ -35,7 +39,7 @@ The navbar's **Login** signs people in with the same Supabase project as the mob
 app/
   layout.tsx            # Root layout: font, metadata, navbar, skip link
   page.tsx              # Home: composes the sections + JSON-LD
-  actions/login.ts      # Server Actions: send code, verify code, sign out (Supabase Auth)
+  actions/login.ts      # Server Action: sign out
   account/              # Signed-in overview (balances, activity, goals), read-only
   auth/callback/        # Where the sign-in link in the email lands
   not-found.tsx sitemap.ts robots.ts icon.svg globals.css
@@ -49,7 +53,8 @@ components/
 hooks/                  # useScrolled, useSignedIn
 lib/
   content.ts            # All copy, links and in-app mock data: edit content here
-  supabase/             # Project settings and the per-request server client
+  supabase/             # Project settings, the browser client and the per-request server client
+  login-client.ts       # Sends and checks sign-in codes from the browser
   account.ts            # Reads the signed-in user's data
   chart.ts format.ts login.ts site-url.ts utils.ts
 proxy.ts                # Refreshes the Supabase session before /account renders

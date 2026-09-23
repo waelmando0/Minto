@@ -59,6 +59,7 @@ Sign in with your email, enter the code, and you'll see your two accounts at $0.
 - every transfer rule and error message
 - goal limits and closing a goal
 - that new accounts start empty and the demo functions are gone
+- goal limits: a goal type must be a short lowercase id, and each user can have at most 20 goals
 - account deletion: it removes only the caller's data, and anonymous users can't call it
 - anonymous access
 
