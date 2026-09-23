@@ -22,11 +22,12 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
    <p>It expires in 1 hour. If you didn't ask for it, ignore this email.</p>
    ```
    Keep the code length at **6 digits** (Authentication → Providers → Email), which is what the app expects.
-4. **Connect the app.** Copy `mobile/.env.example` to `mobile/.env` and fill in **Project Settings → API**:
+4. **Connect the app.** Copy `mobile/.env.example` to `mobile/.env` and fill in **Project Settings → API Keys**:
    ```bash
    EXPO_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon / publishable key>
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
    ```
+   Older projects can set `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the legacy anon key instead. Supabase's "Connect" dialog shows `NEXT_PUBLIC_…` names for Next.js; the mobile app needs the `EXPO_PUBLIC_…` names above.
    Restart with `npx expo start --clear`; environment variables are read at bundle time.
 5. **For production:** configure custom SMTP (Authentication → Emails). Supabase's built-in sender is heavily rate-limited and meant for testing.
 

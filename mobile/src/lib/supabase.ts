@@ -4,13 +4,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /*
- * Supabase is optional. With EXPO_PUBLIC_SUPABASE_URL and
- * EXPO_PUBLIC_SUPABASE_ANON_KEY set (see mobile/.env.example), sign-in uses
- * real email codes and data lives in Postgres. Without them the app runs in
- * demo mode on local mock data.
+ * Supabase is optional. With EXPO_PUBLIC_SUPABASE_URL and a client key set
+ * (see mobile/.env.example), sign-in uses real email codes and data lives in
+ * Postgres. Without them the app runs in demo mode on local mock data.
+ *
+ * The key is the project's publishable key (sb_publishable_…) or, on older
+ * projects, the legacy anon key. Each must be read as a literal
+ * `process.env.EXPO_PUBLIC_…` expression so Expo can inline it at build time.
  */
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const anonKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 let client: SupabaseClient | null = null;
 

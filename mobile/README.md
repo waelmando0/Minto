@@ -6,7 +6,7 @@ The Minto app for iOS and Android, built with **Expo SDK 57** (React Native 0.86
 
 With no configuration the app runs in **demo mode**: mock data on the device and a demo sign-in code (`246810`, shown on the Verify screen).
 
-To use real email sign-in codes and a Postgres database, follow [`supabase/README.md`](../supabase/README.md), then copy `.env.example` to `.env` and add your project URL and anon key. The app switches automatically:
+To use real email sign-in codes and a Postgres database, follow [`supabase/README.md`](../supabase/README.md), then copy `.env.example` to `.env` and add your project URL and publishable key. The app switches automatically:
 
 | | Demo mode | Supabase |
 |---|---|---|
