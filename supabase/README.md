@@ -27,7 +27,7 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
    EXPO_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
    EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
    ```
-   Older projects can set `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the legacy anon key instead. Supabase's "Connect" dialog shows `NEXT_PUBLIC_…` names for Next.js; the mobile app needs the `EXPO_PUBLIC_…` names above.
+   `EXPO_PUBLIC_SUPABASE_KEY` is accepted as well. Older projects can set `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the legacy anon key instead. Supabase's "Connect" dialog shows `NEXT_PUBLIC_…` names for Next.js; the mobile app needs the `EXPO_PUBLIC_…` names above.
    Restart with `npx expo start --clear`; environment variables are read at bundle time.
 5. **For production:** configure custom SMTP (Authentication → Emails). Supabase's built-in sender is heavily rate-limited and meant for testing.
 
