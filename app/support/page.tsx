@@ -47,8 +47,9 @@ export default function SupportPage() {
       <section>
         <h2>How do I delete my account?</h2>
         <p>
-          In the app, open <strong>Profile → Delete account</strong>. This permanently deletes your account and all
-          its data. You can also email us to ask for deletion.
+          In the app, open <strong>Profile → Delete account</strong>, or log in on the web and use{" "}
+          <strong>Delete account</strong> on your account page. This permanently deletes your account and all its data.
+          See <Link href="/delete-account">deleting your account</Link> for every option, including by email.
         </p>
       </section>
 

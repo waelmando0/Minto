@@ -4,6 +4,7 @@ import { LogOut, Smartphone, Target } from "lucide-react";
 
 import { signOut } from "@/app/actions/login";
 import { Container } from "@/components/container";
+import { DeleteAccountDialog } from "@/components/delete-account-dialog";
 import { LoginDialog } from "@/components/login-dialog";
 import { MintoMark } from "@/components/logo";
 import { StoreButtons, pillVariants } from "@/components/store-buttons";
@@ -191,6 +192,10 @@ function Overview({ overview, email }: { overview: AccountOverview; email: strin
         </p>
         <StoreButtons className="justify-start" />
       </aside>
+
+      <div className="mt-10 border-t pt-6">
+        <DeleteAccountDialog />
+      </div>
     </Container>
   );
 }

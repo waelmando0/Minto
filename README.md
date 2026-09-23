@@ -17,7 +17,7 @@ The site URL used for canonical URLs, the sitemap and Open Graph tags defaults t
 
 ## Web sign-in (optional)
 
-The navbar's **Login** signs people in with the same Supabase project as the mobile app. It emails a one-time code, and the **/account** page then shows their balances, recent activity and goals. The page is read-only; money moves only in the app. Without Supabase settings the site still builds and works, and Login says sign-in isn't available.
+The navbar's **Login** signs people in with the same Supabase project as the mobile app. It emails a one-time code, and the **/account** page then shows their balances, recent activity and goals. The page is read-only; money moves only in the app. People can also **delete their account** there, and `/delete-account` explains every way to do it. Use that page as Google Play's account-deletion URL. Without Supabase settings the site still builds and works, and Login says sign-in isn't available.
 
 Codes are requested and checked **from the visitor's browser**, not the server. Supabase Auth rate-limits sign-in per IP address, and from the server every visitor would share the host's IPs.
 
