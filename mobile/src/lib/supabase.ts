@@ -9,11 +9,15 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * Postgres. Without them the app runs in demo mode on local mock data.
  *
  * The key is the project's publishable key (sb_publishable_…) or, on older
- * projects, the legacy anon key. Each must be read as a literal
- * `process.env.EXPO_PUBLIC_…` expression so Expo can inline it at build time.
+ * projects, the legacy anon key. Any of the names below works. Each must be
+ * read as a literal `process.env.EXPO_PUBLIC_…` expression so Expo can inline
+ * it at build time.
  */
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const anonKey =
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.EXPO_PUBLIC_SUPABASE_KEY ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 let client: SupabaseClient | null = null;
 
