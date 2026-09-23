@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Session as SupabaseSession } from "@supabase/supabase-js";
 
 import type { Session } from "@/lib/auth";
+import { remoteDeleteAccount } from "@/lib/remote";
 import { secureStorage } from "@/lib/storage";
 import { getSupabase } from "@/lib/supabase";
 
@@ -20,6 +21,8 @@ interface SessionContextValue {
   session: Session | null;
   signIn: (session: Session) => Promise<void>;
   signOut: () => Promise<void>;
+  /** Supabase only: permanently deletes the account and its data, then signs out. */
+  deleteAccount?: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -85,7 +88,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setStatus("signedOut");
   }, []);
 
-  const value = useMemo(() => ({ status, session, signIn, signOut }), [status, session, signIn, signOut]);
+  const deleteAccount = useMemo(() => {
+    const supabase = getSupabase();
+    if (!supabase) return undefined;
+    return async () => {
+      await remoteDeleteAccount(supabase);
+      // The user no longer exists on the server, so only clear this device.
+      await supabase.auth.signOut({ scope: "local" });
+      setSession(null);
+      setStatus("signedOut");
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({ status, session, signIn, signOut, deleteAccount }),
+    [status, session, signIn, signOut, deleteAccount],
+  );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 

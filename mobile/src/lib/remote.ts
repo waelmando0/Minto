@@ -154,6 +154,11 @@ export async function remoteCreateGoal(
   return (goal as GoalRow).id;
 }
 
+/** Permanently deletes the signed-in user and, by cascade, all their data. */
+export async function remoteDeleteAccount(supabase: SupabaseClient) {
+  await unwrap(supabase.rpc("delete_my_account"));
+}
+
 export async function remoteCloseGoal(supabase: SupabaseClient, goalId: string) {
   await unwrap(supabase.rpc("close_goal", { p_goal_id: goalId }));
 }

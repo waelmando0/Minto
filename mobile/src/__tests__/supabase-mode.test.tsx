@@ -61,7 +61,7 @@ jest.mock("@/lib/supabase", () => ({
 import { isDemoAuth, requestCode, verifyCode } from "@/lib/auth";
 import { errorMessage, toSnapshot } from "@/lib/remote";
 import { AppStateProvider, totalBalance, useAppState } from "@/state/app-state";
-import { SessionProvider } from "@/state/session";
+import { SessionProvider, useSession } from "@/state/session";
 /* eslint-enable import/first */
 
 beforeEach(() => {
@@ -213,5 +213,47 @@ describe("AppStateProvider in Supabase mode", () => {
     await renderApp();
     await waitFor(() => expect(api.app?.ready).toBe(true));
     expect(mockClient.from).not.toHaveBeenCalled();
+  });
+});
+
+const sessionApi = {} as { session: ReturnType<typeof useSession> };
+
+function SessionProbe() {
+  const session = useSession();
+  useEffect(() => {
+    sessionApi.session = session;
+  });
+  return <Text>{session.status}</Text>;
+}
+
+describe("Account deletion", () => {
+  it("deletes the account on the server, then signs out on this device", async () => {
+    await render(
+      <SessionProvider>
+        <SessionProbe />
+      </SessionProvider>,
+    );
+    await screen.findByText("signedIn");
+
+    await act(async () => {
+      await sessionApi.session.deleteAccount!();
+    });
+    expect(rpc).toHaveBeenCalledWith("delete_my_account");
+    expect(mockClient.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(screen.getByText("signedOut")).toBeTruthy();
+  });
+
+  it("stays signed in and reports the error when the server refuses", async () => {
+    await render(
+      <SessionProvider>
+        <SessionProbe />
+      </SessionProvider>,
+    );
+    await screen.findByText("signedIn");
+    rpcResult = { data: null, error: { message: "Not signed in" } };
+
+    await expect(sessionApi.session.deleteAccount!()).rejects.toThrow("Not signed in");
+    expect(mockClient.auth.signOut).not.toHaveBeenCalled();
+    expect(screen.getByText("signedIn")).toBeTruthy();
   });
 });
