@@ -15,10 +15,11 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
 2. **Create the database.** Pick one:
    - Open **SQL Editor**, paste [`migrations/20260922000000_minto_init.sql`](migrations/20260922000000_minto_init.sql) and run it.
    - Or, with the [Supabase CLI](https://supabase.com/docs/guides/cli): `supabase link --project-ref <ref>` then `supabase db push`.
-3. **Send codes, not links.** Go to **Authentication → Emails → Templates → Magic Link** and include the code in the email, for example:
+3. **Send codes, not links.** Supabase only lets you edit email templates once custom SMTP is set up (**Authentication → Emails → SMTP Settings**; [Resend](https://resend.com), Postmark or SendGrid all work). Then open **Authentication → Emails → Magic link or OTP**, switch the body to **Source**, and include the code, for example:
    ```html
    <h2>Your Minto sign-in code</h2>
    <p>Enter this code in the app: <strong>{{ .Token }}</strong></p>
+   <p>On the website you can also <a href="{{ .ConfirmationURL }}">sign in with this link</a>, in the browser where you asked for it.</p>
    <p>It expires in 1 hour. If you didn't ask for it, ignore this email.</p>
    ```
    Put the same `{{ .Token }}` line in the **Confirm signup** template too: some projects send that one to first-time users. Keep the code length at **6 digits** (Authentication → Providers → Email), which is what the app expects.
@@ -29,6 +30,7 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
    ```
    `EXPO_PUBLIC_SUPABASE_KEY` is accepted as well. Older projects can set `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the legacy anon key instead. Supabase's "Connect" dialog shows `NEXT_PUBLIC_…` names for Next.js; the mobile app needs the `EXPO_PUBLIC_…` names above.
    Restart with `npx expo start --clear`; environment variables are read at bundle time.
+   Until then, the default email only has a link: website sign-in works through it, but the mobile app needs the code.
 5. **Website (optional).** The website's Login uses the same project; see "Web sign-in" in the [root README](../README.md#web-sign-in-optional).
 6. **For production:** configure custom SMTP (Authentication → Emails). Supabase's built-in sender is heavily rate-limited and meant for testing.
 
