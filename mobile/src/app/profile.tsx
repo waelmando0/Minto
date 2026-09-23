@@ -3,7 +3,7 @@ import { Alert, Linking, Platform, Pressable, Switch, View } from "react-native"
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, Moon, RotateCcw, X, type LucideIcon } from "lucide-react-native";
+import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, Moon, RotateCcw, Trash2, X, type LucideIcon } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { Card, IconButton } from "@/components/ui";
@@ -34,20 +34,23 @@ function Row({
   label,
   onPress,
   right,
+  destructive,
 }: {
   icon: LucideIcon;
   label: string;
   onPress?: () => void;
   right?: ReactNode;
+  destructive?: boolean;
 }) {
   const colors = useColors();
   const styles = useStyles();
+  const tint = destructive ? colors.negative : colors.ink;
   const content = (
     <>
       <View style={styles.rowIcon}>
-        <Icon size={18} color={colors.ink} />
+        <Icon size={18} color={tint} />
       </View>
-      <Text variant="label" style={{ flex: 1 }}>
+      <Text variant="label" color={tint} style={{ flex: 1 }}>
         {label}
       </Text>
       {right ?? <ChevronRight size={18} color={colors.inkFaint} />}
@@ -112,7 +115,7 @@ export default function ProfileScreen() {
   const colors = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const { session, signOut } = useSession();
+  const { session, signOut, deleteAccount } = useSession();
   const { state, dispatch, actions } = useAppState();
   const { resetData } = actions;
   const name = state.displayName ?? user.name;
@@ -199,6 +202,25 @@ export default function ProfileScreen() {
             )
           }
         />
+        {deleteAccount ? (
+          <Row
+            icon={Trash2}
+            label="Delete account"
+            right={<View />}
+            destructive
+            onPress={() =>
+              confirmAction(
+                "Delete your Minto account?",
+                "Your account, balances, transactions and goals are permanently deleted. This can't be undone.",
+                "Delete account",
+                () =>
+                  void deleteAccount().catch((e: unknown) =>
+                    showMessage("Couldn't delete your account", e instanceof Error ? e.message : "Try again."),
+                  ),
+              )
+            }
+          />
+        ) : null}
       </Card>
 
       <Text variant="caption" color={colors.inkSubtle} align="center" style={{ marginTop: "auto" }}>

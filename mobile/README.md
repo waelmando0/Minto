@@ -68,7 +68,7 @@ npm test           # jest-expo + React Native Testing Library
 | **Wallet** | Account cards, a selectable payment method, and receive details. Tap a detail to copy it; Share sends all of them. |
 | **Transfer** (modal) | One amount sheet for Send, Top Up, Deposit and Withdraw. It has its own keypad and validates the $10–$50,000 limits and available cash. A success state follows. |
 | **Transaction** (modal) | Details for any transaction row. |
-| **Profile** (modal, from the avatar on Home) | Your details, hide balances, Appearance (System / Light / Dark), accounts, Help & FAQ (opens the website), Reset demo data (demo mode only), and Sign out. |
+| **Profile** (modal, from the avatar on Home) | Your details, hide balances, Appearance (System / Light / Dark), accounts, Help & FAQ (opens the website), Reset demo data (demo mode only), Sign out, and Delete account (Supabase only; permanent, after a confirmation). |
 
 The eye button on any balance hides every amount in the app. Transfers really update the balances and add a transaction.
 

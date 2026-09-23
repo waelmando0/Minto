@@ -129,13 +129,29 @@ select pg_temp.check((select sum(balance) = 0 from public.accounts), 'Bob''s bal
 select pg_temp.check((select count(*) = 0 from public.transactions), 'RLS: Bob doesn''t see Alice''s transactions');
 select pg_temp.check((select count(*) = 1 from public.goals), 'Bob''s goal is untouched by Alice');
 
+-- Bob deletes his account: everything of his goes, Alice keeps hers.
+select public.delete_my_account();
+select pg_temp.check((select count(*) = 0 from public.accounts), 'after deleting, Bob has no accounts');
+select pg_temp.check((select count(*) = 0 from public.goals), 'after deleting, Bob has no goals');
+reset role;
+select pg_temp.check((select count(*) = 0 from auth.users where id = '00000000-0000-0000-0000-00000000000b'), 'delete_my_account removes the auth user');
+select pg_temp.check((select count(*) = 0 from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 'deleting cascades to the profile');
+select pg_temp.check(
+  (select count(*) = 2 from public.accounts where user_id = '00000000-0000-0000-0000-00000000000a')
+    and (select count(*) = 7 from public.transactions where user_id = '00000000-0000-0000-0000-00000000000a'),
+  'Alice''s data survives Bob''s deletion'
+);
+set role authenticated;
+
 select set_config('request.jwt.claim.sub', '', false);
 select pg_temp.expect_error($$select public.transfer('topup', 100)$$, 'Not signed in');
+select pg_temp.expect_error($$select public.delete_my_account()$$, 'Not signed in');
 
 reset role;
 set role anon;
 select pg_temp.expect_error($$select * from public.accounts$$, 'permission denied');
 select pg_temp.expect_error($$select public.transfer('topup', 100)$$, 'permission denied');
+select pg_temp.expect_error($$select public.delete_my_account()$$, 'permission denied');
 reset role;
 
 \echo 'All database tests passed.'

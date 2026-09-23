@@ -6,7 +6,7 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
 |---|---|
 | **Auth** | Email one-time codes (`signInWithOtp` → `verifyOtp`). No passwords. |
 | **`profiles`, `accounts`, `transactions`, `goals`** | Each user's data. Row-level security lets a user read **only their own rows**. |
-| **Server functions** | `transfer`, `create_goal` and `close_goal`. They are the **only** way to change data: they validate amounts ($10–$50,000, available cash, goal limits), check ownership, and update balances and history in one transaction. A client can't set a balance directly. |
+| **Server functions** | `transfer`, `create_goal`, `close_goal` and `delete_my_account` (in-app account deletion, which the App Store requires; it removes the user and, by cascade, all their data). They are the **only** way to change data: they validate amounts ($10–$50,000, available cash, goal limits), check ownership, and update balances and history in one transaction. A client can't set a balance directly. |
 | **Signup trigger** | Gives every new user a profile and two accounts (Investment and Personal) at $0.00. Until a payment provider is connected, **Top up** in the app is how money gets in. |
 
 ## Set it up (about 10 minutes)
@@ -59,6 +59,7 @@ Sign in with your email, enter the code, and you'll see your two accounts at $0.
 - every transfer rule and error message
 - goal limits and closing a goal
 - that new accounts start empty and the demo functions are gone
+- account deletion: it removes only the caller's data, and anonymous users can't call it
 - anonymous access
 
 ```bash
