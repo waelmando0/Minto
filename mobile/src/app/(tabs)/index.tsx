@@ -83,16 +83,33 @@ export default function HomeScreen() {
               <GoalCard key={goal.id} goal={goal} />
             ))}
           </ScrollView>
-        ) : null}
+        ) : (
+          <Text variant="caption" color={colors.inkMuted}>
+            Save toward a trip, a new laptop or a rainy-day fund. Tap Create to start your first goal.
+          </Text>
+        )}
       </View>
 
       <Card>
         <SectionHeader title="Recent Transactions" action="See All" onAction={() => router.navigate("/activity")} />
-        <View style={{ marginTop: 6 }}>
-          {state.transactions.slice(0, 5).map((transaction) => (
-            <TransactionRow key={transaction.id} transaction={transaction} />
-          ))}
-        </View>
+        {state.transactions.length ? (
+          <View style={{ marginTop: 6 }}>
+            {state.transactions.slice(0, 5).map((transaction) => (
+              <TransactionRow key={transaction.id} transaction={transaction} />
+            ))}
+          </View>
+        ) : (
+          <View style={{ marginTop: 12, gap: 14 }}>
+            <Text variant="caption" color={colors.inkMuted}>
+              No transactions yet. Add money to your Personal account to get started.
+            </Text>
+            <Button
+              label="Top up"
+              tone="light"
+              onPress={() => router.push({ pathname: "/transfer", params: { kind: "topup" } })}
+            />
+          </View>
+        )}
       </Card>
     </Screen>
   );

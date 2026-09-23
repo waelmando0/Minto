@@ -137,6 +137,25 @@ describe("AppStateProvider in Supabase mode", () => {
     expect(api.app.state.goals[0].name).toBe("Trip");
   });
 
+  it("loads a brand-new, empty account and offers no demo reset", async () => {
+    const saved = { ...db };
+    Object.assign(db, {
+      profiles: [{ ...db.profiles[0], investment_cash: "0.00" }],
+      accounts: db.accounts.map((a) => ({ ...a, balance: "0.00" })),
+      transactions: [],
+      goals: [],
+    });
+    try {
+      await renderApp();
+      expect(await screen.findByText("supabase Alice Doe 0.00 idle")).toBeTruthy();
+      expect(api.app.state.transactions).toEqual([]);
+      expect(api.app.state.goals).toEqual([]);
+      expect(api.app.actions.resetData).toBeUndefined();
+    } finally {
+      Object.assign(db, saved);
+    }
+  });
+
   it("runs transfers through the transfer() function, then re-fetches", async () => {
     await renderApp();
     await screen.findByText(/idle/);

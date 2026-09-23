@@ -114,6 +114,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { session, signOut } = useSession();
   const { state, dispatch, actions } = useAppState();
+  const { resetData } = actions;
   const name = state.displayName ?? user.name;
   const initials = name
     .split(" ")
@@ -167,22 +168,24 @@ export default function ProfileScreen() {
       </Card>
 
       <Card style={{ paddingVertical: 6 }}>
-        <Row
-          icon={RotateCcw}
-          label="Reset demo data"
-          right={<View />}
-          onPress={() =>
-            confirmAction(
-              "Reset demo data?",
-              "Balances and transactions go back to the starting demo data.",
-              "Reset",
-              () =>
-                void actions
-                  .resetData()
-                  .catch((e: unknown) => showMessage("Couldn't reset", e instanceof Error ? e.message : "Try again.")),
-            )
-          }
-        />
+        {resetData ? (
+          <Row
+            icon={RotateCcw}
+            label="Reset demo data"
+            right={<View />}
+            onPress={() =>
+              confirmAction(
+                "Reset demo data?",
+                "Balances and transactions go back to the starting demo data.",
+                "Reset",
+                () =>
+                  void resetData().catch((e: unknown) =>
+                    showMessage("Couldn't reset", e instanceof Error ? e.message : "Try again."),
+                  ),
+              )
+            }
+          />
+        ) : null}
         <Row
           icon={LogOut}
           label="Sign out"

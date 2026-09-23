@@ -148,7 +148,7 @@ export default function ActivityScreen() {
 
       {visible.length === 0 ? (
         <Text align="center" color={colors.inkSubtle} style={{ paddingVertical: 40 }}>
-          No transactions match your search.
+          {state.transactions.length ? "No transactions match your search." : "No transactions yet."}
         </Text>
       ) : (
         groupByDay(visible).map((group) => (

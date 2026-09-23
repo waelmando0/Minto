@@ -14,6 +14,7 @@ To use real email sign-in codes and a Postgres database, follow [`supabase/READM
 | Data | Saved on the device | Postgres, protected by row-level security; the device copy is an offline cache |
 | Transfers & goals | Applied locally | Server functions validate and apply them, then the app re-fetches |
 | Errors | Checked in the app | The server's message is shown (e.g. "Not enough available cash") |
+| New accounts | Start with the demo data | Start empty at $0.00; **Reset demo data** isn't offered |
 
 ## Run it
 
@@ -66,11 +67,11 @@ npm test           # jest-expo + React Native Testing Library
 | **Wallet** | Account cards, a selectable payment method, and receive details. Tap a detail to copy it; Share sends all of them. |
 | **Transfer** (modal) | One amount sheet for Send, Top Up, Deposit and Withdraw. It has its own keypad and validates the $10–$50,000 limits and available cash. A success state follows. |
 | **Transaction** (modal) | Details for any transaction row. |
-| **Profile** (modal, from the avatar on Home) | Your details, hide balances, Appearance (System / Light / Dark), accounts, Help & FAQ (opens the website), Reset demo data, and Sign out. |
+| **Profile** (modal, from the avatar on Home) | Your details, hide balances, Appearance (System / Light / Dark), accounts, Help & FAQ (opens the website), Reset demo data (demo mode only), and Sign out. |
 
 The eye button on any balance hides every amount in the app. Transfers really update the balances and add a transaction.
 
-**Data is saved per account.** Balances, transactions and preferences are stored on the device with AsyncStorage and restored at launch. Signing out wipes them from the device, and **Profile → Reset demo data** restores the starting data. Saves are versioned and migrated: when `AppState` changes shape, bump `VERSION` in `src/lib/persist.ts` and add a step to `migrate()`. For example, v2 added goals to v1 saves. Anything that can't be migrated is ignored rather than breaking the app.
+**Data is saved per account.** Balances, transactions and preferences are stored on the device with AsyncStorage and restored at launch. Signing out wipes them from the device, and in demo mode **Profile → Reset demo data** restores the starting data. Saves are versioned and migrated: when `AppState` changes shape, bump `VERSION` in `src/lib/persist.ts` and add a step to `migrate()`. For example, v2 added goals to v1 saves. Anything that can't be migrated is ignored rather than breaking the app.
 
 ## Structure
 

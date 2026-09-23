@@ -6,8 +6,8 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
 |---|---|
 | **Auth** | Email one-time codes (`signInWithOtp` → `verifyOtp`). No passwords. |
 | **`profiles`, `accounts`, `transactions`, `goals`** | Each user's data. Row-level security lets a user read **only their own rows**. |
-| **Server functions** | `transfer`, `create_goal`, `close_goal` and `reset_demo_data`. They are the **only** way to change data: they validate amounts ($10–$50,000, available cash, goal limits), check ownership, and update balances and history in one transaction. A client can't set a balance directly. |
-| **Signup trigger** | Gives every new user a profile, two accounts, and demo transactions and goals, so the app isn't empty. |
+| **Server functions** | `transfer`, `create_goal` and `close_goal`. They are the **only** way to change data: they validate amounts ($10–$50,000, available cash, goal limits), check ownership, and update balances and history in one transaction. A client can't set a balance directly. |
+| **Signup trigger** | Gives every new user a profile and two accounts (Investment and Personal) at $0.00. Until a payment provider is connected, **Top up** in the app is how money gets in. |
 
 ## Set it up (about 10 minutes)
 
@@ -34,11 +34,20 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
 5. **Website (optional).** The website's Login uses the same project; see "Web sign-in" in the [root README](../README.md#web-sign-in-optional).
 6. **For production:** configure custom SMTP (Authentication → Emails). Supabase's built-in sender is heavily rate-limited and meant for testing.
 
-Sign in with your email, enter the code, and you'll see your seeded accounts. Every transfer and goal change is now stored in Postgres.
+Sign in with your email, enter the code, and you'll see your two accounts at $0.00. Top up to add money; every transfer and goal change is stored in Postgres.
 
 ## Before going live with real money
 
-- **Remove the demo seeding.** Delete the `perform public.seed_demo_data(new.id);` line in `handle_new_user()` (in a new migration), and stop exposing `reset_demo_data`.
+- **Demo data is gone for new users.** Migration `20260923000000_remove_demo_data.sql` stops seeding sample balances, transactions and goals, and removes `reset_demo_data`. Accounts created before it keep their demo data. To clear it, run this in the SQL Editor. It **permanently deletes every user's transactions and goals** and sets all balances to $0.00, so only do it before real users have real data:
+  ```sql
+  begin;
+  delete from public.transactions;
+  delete from public.goals;
+  update public.accounts set balance = 0;
+  update public.profiles set investment_cash = 0;
+  commit;
+  ```
+- **Top up is still pretend money.** It credits the account without charging anyone.
 - **Balances come from somewhere real.** Replace `transfer()` with calls to your payments / banking provider. Keep the same pattern: validation and balance changes happen on the server, never in the app.
 - Holdings, the investment chart and linked bank accounts are still mock data in the app.
 
@@ -49,7 +58,7 @@ Sign in with your email, enter the code, and you'll see your seeded accounts. Ev
 - that direct writes are refused
 - every transfer rule and error message
 - goal limits and closing a goal
-- reset
+- that new accounts start empty and the demo functions are gone
 - anonymous access
 
 ```bash

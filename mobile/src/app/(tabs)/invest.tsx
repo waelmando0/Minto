@@ -23,6 +23,8 @@ export default function InvestScreen() {
   const up = current.change >= 0;
   const Trend = up ? TrendingUp : TrendingDown;
   const assets = state.accounts.find((a) => a.id === "investment")?.balance ?? 0;
+  // A new account has nothing invested: no performance or holdings to show yet.
+  const invested = assets > 0;
 
   return (
     <Screen>
@@ -41,23 +43,33 @@ export default function InvestScreen() {
               <BalanceToggle color={colors.inkSubtle} />
             </View>
           </View>
-          <View style={styles.change}>
-            <View style={[styles.badge, { backgroundColor: up ? colors.violet : colors.negative }]}>
-              <Trend size={12} color="#fff" strokeWidth={3} />
+          {invested ? (
+            <View style={styles.change}>
+              <View style={[styles.badge, { backgroundColor: up ? colors.violet : colors.negative }]}>
+                <Trend size={12} color="#fff" strokeWidth={3} />
+              </View>
+              <Text variant="label" weight="semibold" color={up ? colors.violet : colors.negative}>
+                {`${up ? "+" : ""}${current.change}%`}
+              </Text>
             </View>
-            <Text variant="label" weight="semibold" color={up ? colors.violet : colors.negative}>
-              {`${up ? "+" : ""}${current.change}%`}
-            </Text>
-          </View>
+          ) : null}
         </View>
-        <Text variant="caption" color={colors.inkSubtle} style={{ marginTop: -12 }}>
-          {current.label}
-        </Text>
-        <CandleChart
-          seed={current.seed}
-          label={`Portfolio performance, ${range}: ${up ? "up" : "down"} ${Math.abs(current.change)} percent`}
-        />
-        <RangeTabs value={range} onChange={setRange} />
+        {invested ? (
+          <>
+            <Text variant="caption" color={colors.inkSubtle} style={{ marginTop: -12 }}>
+              {current.label}
+            </Text>
+            <CandleChart
+              seed={current.seed}
+              label={`Portfolio performance, ${range}: ${up ? "up" : "down"} ${Math.abs(current.change)} percent`}
+            />
+            <RangeTabs value={range} onChange={setRange} />
+          </>
+        ) : (
+          <Text variant="caption" color={colors.inkMuted} style={{ marginTop: -8 }}>
+            You haven&apos;t invested yet. Deposit cash below to start building your portfolio.
+          </Text>
+        )}
       </Card>
 
       <Card style={{ gap: 14 }}>
@@ -86,12 +98,18 @@ export default function InvestScreen() {
       </Card>
 
       <Card>
-        <SectionHeader title="Portfolio" action="Manage" />
-        <View style={{ marginTop: 6 }}>
-          {holdings.map((holding) => (
-            <HoldingRow key={holding.id} holding={holding} />
-          ))}
-        </View>
+        <SectionHeader title="Portfolio" action={invested ? "Manage" : undefined} />
+        {invested ? (
+          <View style={{ marginTop: 6 }}>
+            {holdings.map((holding) => (
+              <HoldingRow key={holding.id} holding={holding} />
+            ))}
+          </View>
+        ) : (
+          <Text variant="caption" color={colors.inkMuted} style={{ marginTop: 10 }}>
+            Your funds and returns will show up here once you invest.
+          </Text>
+        )}
       </Card>
     </Screen>
   );
