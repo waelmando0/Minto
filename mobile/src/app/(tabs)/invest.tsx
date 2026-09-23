@@ -17,14 +17,15 @@ import { useColors } from "@/theme/theme";
 
 export default function InvestScreen() {
   const colors = useColors();
-  const { state } = useAppState();
+  const { state, mode } = useAppState();
   const [range, setRange] = useState<Range>("1M");
   const current = ranges[range];
   const up = current.change >= 0;
   const Trend = up ? TrendingUp : TrendingDown;
   const assets = state.accounts.find((a) => a.id === "investment")?.balance ?? 0;
-  // A new account has nothing invested: no performance or holdings to show yet.
-  const invested = assets > 0;
+  // The chart and holdings are sample data: show them only in the demo, and only
+  // when something is invested. Real accounts see an honest empty state.
+  const invested = mode === "demo" && assets > 0;
 
   return (
     <Screen>
@@ -67,7 +68,9 @@ export default function InvestScreen() {
           </>
         ) : (
           <Text variant="caption" color={colors.inkMuted} style={{ marginTop: -8 }}>
-            You haven&apos;t invested yet. Deposit cash below to start building your portfolio.
+            {assets > 0
+              ? "Performance history isn't available for this account yet."
+              : "You haven't invested yet. Deposit cash below to start building your portfolio."}
           </Text>
         )}
       </Card>
