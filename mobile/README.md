@@ -110,8 +110,19 @@ src/
 
 | Profile | Use |
 |---|---|
-| `preview` | Internal testing: an Android APK and an ad-hoc iOS build, shared by link |
-| `production` | Store builds; the build number increments automatically |
+| `preview` | Internal testing: an Android APK and an ad-hoc iOS build, shared by link. Uses the EAS `preview` environment |
+| `production` | Store builds; the build number increments automatically. Uses the EAS `production` environment |
+
+**Supabase settings come from EAS, not `.env`.** `mobile/.env` is gitignored, so it never reaches the build servers; without the settings a build runs in demo mode. Store them once as EAS environment variables. The publishable key is safe in the app, so `plaintext` is fine:
+
+```bash
+npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://<your-project>.supabase.co \
+  --environment production --environment preview --visibility plaintext
+npx eas-cli@latest env:create --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value sb_publishable_… \
+  --environment production --environment preview --visibility plaintext
+```
+
+`app.config.js` fails a `production` build on EAS if they're missing, so the demo sign-in code can't ship to the stores. `preview` builds are allowed to run in demo mode.
 
 ```bash
 cd mobile
@@ -123,4 +134,4 @@ npx eas-cli@latest submit --platform ios              # App Store Connect (Apple
 npx eas-cli@latest submit --platform android          # Google Play (Play Console account needed)
 ```
 
-The bundle identifier and package are `app.minto.mobile` (in `app.json`). Change them before your first store build if you own a different domain.
+The bundle identifier and package are `app.minto.mobile` (in `app.json`). Change them before your first store build if you own a different domain. `ios.config.usesNonExemptEncryption` is `false` (the app only uses standard HTTPS), which answers App Store Connect's export-compliance question for every upload.
