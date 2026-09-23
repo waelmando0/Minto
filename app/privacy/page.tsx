@@ -87,7 +87,8 @@ export default function PrivacyPage() {
         <h2>Keeping and deleting your data</h2>
         <p>
           We keep your data while you have an account. You can delete your account at any time in the app under{" "}
-          <strong>Profile → Delete account</strong>. This permanently removes your account, balances, transactions and
+          <strong>Profile → Delete account</strong>, or on the web from your account page (see{" "}
+          <Link href="/delete-account">how to delete your account</Link>). This permanently removes your account, balances, transactions and
           goals. You can also ask us to delete it, or for a copy of your data, by emailing{" "}
           <a href={`mailto:${email}`}>{email}</a>.
         </p>
