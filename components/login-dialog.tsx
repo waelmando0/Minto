@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ArrowLeft, LoaderCircle, MailCheck } from "lucide-react";
 
-import { requestCode, verifyCode } from "@/app/actions/login";
+import { requestCode, verifyCode } from "@/lib/login-client";
 import { MintoMark } from "@/components/logo";
 import { pillVariants } from "@/components/store-buttons";
 import {
@@ -152,7 +152,11 @@ function CodeStep({ email, onBack }: { email: string; onBack: () => void }) {
             </p>
           ) : null}
         </div>
-        <SubmitButton pending={pending} idle="Log in" busy="Checking code" />
+        <SubmitButton
+          pending={pending || state.status === "success"}
+          idle="Log in"
+          busy={state.status === "success" ? "Opening your account" : "Checking code"}
+        />
       </form>
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs">

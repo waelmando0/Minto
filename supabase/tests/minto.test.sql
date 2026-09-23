@@ -100,6 +100,8 @@ select pg_temp.check((select balance = 11773 from public.accounts where kind = '
 select pg_temp.expect_error($$select public.create_goal('   ', 'vacation', 1000)$$, 'name');
 select pg_temp.expect_error($$select public.create_goal('Trip', 'vacation', 5)$$, 'at least');
 select pg_temp.expect_error($$select public.create_goal('Trip', 'vacation', 2000000)$$, 'at most');
+select pg_temp.expect_error($$select public.create_goal('Trip', 'Vacation!', 1000)$$, 'goal type');
+select pg_temp.expect_error($$select public.create_goal('Trip', repeat('a', 5000), 1000)$$, 'goal type');
 select public.create_goal('Trip', 'vacation', 1000);
 select public.transfer('goal', 300, null, (select id from public.goals where name = 'Trip'));
 select pg_temp.check((select saved = 300 from public.goals where name = 'Trip'), 'add money raises goal savings');
@@ -116,6 +118,14 @@ select public.close_goal((select id from public.goals where name = 'Trip'));
 select pg_temp.check((select count(*) = 0 from public.goals where name = 'Trip'), 'close_goal deletes the goal');
 select pg_temp.check((select balance = 11773 from public.accounts where kind = 'personal'), 'close_goal returns savings to Personal');
 select pg_temp.check((select count(*) = 7 from public.transactions), 'every movement is in Alice''s history');
+
+-- At most 20 goals per user.
+select count(public.create_goal('Goal ' || n, 'tech', 100)) from generate_series(1, 20) n;
+select pg_temp.expect_error($$select public.create_goal('One too many', 'tech', 100)$$, 'up to 20 goals');
+select pg_temp.check((select count(*) = 20 from public.goals), 'Alice is capped at 20 goals');
+reset role;
+delete from public.goals where name like 'Goal %';
+set role authenticated;
 
 -- Alice cannot touch Bob's goal.
 select pg_temp.expect_error(format($$select public.transfer('goal', 50, null, %L)$$, current_setting('app.bob_goal')), 'no longer exists');
