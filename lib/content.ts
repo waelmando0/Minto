@@ -59,6 +59,8 @@ export const mintoMeta = {
   keywords: ["personal finance app", "budgeting", "investing", "money management", "Minto"],
   appStoreUrl: "https://apps.apple.com/",
   playStoreUrl: "https://play.google.com/store/apps",
+  /** Public contact for support, privacy and data requests. */
+  contactEmail: "wamoelti@gmail.com",
 } as const;
 
 export const navGroups: NavGroup[] = [
@@ -349,14 +351,14 @@ export const footer = {
         { label: "About Minto", href: "#about" },
         { label: "Our Mission", href: "#about" },
         { label: "Careers", href: "#contact" },
-        { label: "Contact", href: "#contact" },
+        { label: "Contact", href: "/support" },
         { label: "Press", href: "#contact" },
       ],
     },
     {
       title: "Resources",
       links: [
-        { label: "Help Center", href: "#faq" },
+        { label: "Help Center", href: "/support" },
         { label: "Guides", href: "#faq" },
         { label: "FAQs", href: "#faq" },
         { label: "Insights", href: "#insights" },
@@ -366,7 +368,7 @@ export const footer = {
     {
       title: "Legal",
       links: [
-        { label: "Privacy Policy", href: "#contact" },
+        { label: "Privacy Policy", href: "/privacy" },
         { label: "Terms of Service", href: "#contact" },
         { label: "Cookie Policy", href: "#contact" },
         { label: "Accessibility", href: "#faq" },

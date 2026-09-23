@@ -3,7 +3,7 @@ import { Alert, Linking, Platform, Pressable, Switch, View } from "react-native"
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, Moon, RotateCcw, Trash2, X, type LucideIcon } from "lucide-react-native";
+import { ChevronRight, CircleHelp, CreditCard, EyeOff, LogOut, Moon, RotateCcw, Shield, Trash2, X, type LucideIcon } from "lucide-react-native";
 
 import { Text } from "@/components/text";
 import { Card, IconButton } from "@/components/ui";
@@ -15,7 +15,9 @@ import { useSession } from "@/state/session";
 import { radius, spacing } from "@/theme/tokens";
 import { makeStyles, useColors, useTheme, type ThemePreference } from "@/theme/theme";
 
-const HELP_URL = "https://creatorix-w5pn.vercel.app/#faq";
+const SITE = "https://creatorix-w5pn.vercel.app";
+const HELP_URL = `${SITE}/support`;
+const PRIVACY_URL = `${SITE}/privacy`;
 
 /** Destructive confirmation; Alert.alert has no buttons on web, so use confirm() there. */
 function confirmAction(title: string, message: string, action: string, onConfirm: () => void) {
@@ -167,7 +169,8 @@ export default function ProfileScreen() {
             router.navigate("/wallet");
           }}
         />
-        <Row icon={CircleHelp} label="Help & FAQ" onPress={() => void Linking.openURL(HELP_URL)} />
+        <Row icon={CircleHelp} label="Help & support" onPress={() => void Linking.openURL(HELP_URL)} />
+        <Row icon={Shield} label="Privacy policy" onPress={() => void Linking.openURL(PRIVACY_URL)} />
       </Card>
 
       <Card style={{ paddingVertical: 6 }}>
