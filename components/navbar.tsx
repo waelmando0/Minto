@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { NavigationMenu } from "radix-ui";
@@ -10,13 +11,27 @@ import { LoginDialog } from "@/components/login-dialog";
 import { MintoLogo } from "@/components/logo";
 import { StoreButtons, pillVariants } from "@/components/store-buttons";
 import { useScrolled } from "@/hooks/use-scrolled";
+import { useSignedIn } from "@/hooks/use-signed-in";
 import { navGroups as defaultGroups } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import type { NavGroup, NavMenuItem } from "@/types";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function Navbar({ groups = defaultGroups }: { groups?: NavGroup[] }) {
+/** Section links like `#faq` point at the home page when the navbar is shown elsewhere. */
+function withHomeAnchors(groups: NavGroup[]): NavGroup[] {
+  const fix = (href: string) => (href.startsWith("#") ? `/${href}` : href);
+  return groups.map((group) => ({
+    ...group,
+    href: group.href && fix(group.href),
+    items: group.items?.map((item) => ({ ...item, href: fix(item.href) })),
+  }));
+}
+
+export function Navbar({ groups: sectionGroups = defaultGroups }: { groups?: NavGroup[] }) {
+  const onHome = usePathname() === "/";
+  const groups = React.useMemo(() => (onHome ? sectionGroups : withHomeAnchors(sectionGroups)), [onHome, sectionGroups]);
+  const signedIn = useSignedIn();
   const scrolled = useScrolled(24);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const panelId = React.useId();
@@ -44,16 +59,22 @@ export function Navbar({ groups = defaultGroups }: { groups?: NavGroup[] }) {
         )}
       >
         <div className="relative flex h-12 items-center justify-between pr-1.5 pl-4">
-          <MintoLogo />
+          <MintoLogo href={onHome ? "#top" : "/"} />
 
           <DesktopMenu groups={groups} />
 
           <div className="flex items-center gap-1.5">
-            <LoginDialog>
-              <button type="button" className={cn(pillVariants({ tone: "dark", size: "md" }), "normal-case tracking-normal")}>
-                Login
-              </button>
-            </LoginDialog>
+            {signedIn ? (
+              <Link href="/account" className={cn(pillVariants({ tone: "dark", size: "md" }), "normal-case tracking-normal")}>
+                Account
+              </Link>
+            ) : (
+              <LoginDialog>
+                <button type="button" className={cn(pillVariants({ tone: "dark", size: "md" }), "normal-case tracking-normal")}>
+                  Login
+                </button>
+              </LoginDialog>
+            )}
             <button
               type="button"
               className="grid size-9 place-items-center rounded-full text-[#111] transition-colors hover:bg-black/5 lg:hidden"

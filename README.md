@@ -15,13 +15,29 @@ npm run lint
 
 The site URL used for canonical URLs, the sitemap and Open Graph tags defaults to `https://creatorix-w5pn.vercel.app` (see `lib/site-url.ts`). Set `NEXT_PUBLIC_SITE_URL` to override it, e.g. when you add a custom domain.
 
+## Web sign-in (optional)
+
+The navbar's **Login** signs people in with the same Supabase project as the mobile app. It emails a one-time code, and the **/account** page then shows their balances, recent activity and goals. The page is read-only; money moves only in the app. Without Supabase settings the site still builds and works, and Login says sign-in isn't available.
+
+1. Set up the project as described in [`supabase/README.md`](supabase/README.md).
+2. Copy `.env.example` to `.env.local` (for Vercel: **Settings → Environment Variables**) and fill in **Project Settings → API Keys**:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
+   ```
+   `NEXT_PUBLIC_SUPABASE_KEY` or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` work too. Never use a secret or `service_role` key.
+3. In Supabase, **Authentication → URL Configuration**: set **Site URL** to the website's address and add `https://<your-site>/auth/callback` under **Redirect URLs**. This lets the link in the email sign people in too.
+4. Redeploy. `NEXT_PUBLIC_…` values are built into the site.
+
 ## Project structure
 
 ```
 app/
   layout.tsx            # Root layout: font, metadata, navbar, skip link
   page.tsx              # Home: composes the sections + JSON-LD
-  actions/login.ts      # Server Action behind the passwordless login dialog
+  actions/login.ts      # Server Actions: send code, verify code, sign out (Supabase Auth)
+  account/              # Signed-in overview (balances, activity, goals), read-only
+  auth/callback/        # Where the sign-in link in the email lands
   not-found.tsx sitemap.ts robots.ts icon.svg globals.css
 components/
   sections/             # hero, about (+ highlights), overview, invest, insights, faq, footer
@@ -30,10 +46,13 @@ components/
   motion/reveal.tsx     # Reveal / Stagger scroll animations
   phone-frame.tsx       # CSS-only phone; its screen is an `app-ui` container
   navbar.tsx login-dialog.tsx store-buttons.tsx logo.tsx brand-icons.tsx primitives.tsx container.tsx
-hooks/                  # useScrolled
+hooks/                  # useScrolled, useSignedIn
 lib/
   content.ts            # All copy, links and in-app mock data: edit content here
+  supabase/             # Project settings and the per-request server client
+  account.ts            # Reads the signed-in user's data
   chart.ts format.ts login.ts site-url.ts utils.ts
+proxy.ts                # Refreshes the Supabase session before /account renders
 types/                  # Shared domain types
 public/images/          # Landscape plates
 ```
@@ -50,7 +69,7 @@ public/images/          # Landscape plates
 
 ## Integration points
 
-- **Login:** connect your auth provider's magic-link / OTP flow in `app/actions/login.ts`.
+- **Login:** Supabase email codes, see [Web sign-in](#web-sign-in-optional).
 - **Store links:** `mintoMeta.appStoreUrl` / `playStoreUrl` in `lib/content.ts`.
 
 ## Imagery
