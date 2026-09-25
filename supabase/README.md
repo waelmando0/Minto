@@ -36,6 +36,18 @@ The mobile app uses Supabase for sign-in and data when it's configured. Without 
 
 Sign in with your email, enter the code, and you'll see your two accounts at $0.00. Top up to add money; every transfer and goal change is stored in Postgres.
 
+## Checking and fixing your project
+
+If the SQL Editor stops partway through a migration, some pieces may be missing. The scripts in [`scripts/`](scripts/) are safe to run in the SQL Editor, any number of times:
+
+| Script | When to use it |
+|---|---|
+| [`health-check.sql`](scripts/health-check.sql) | Anytime. It only reads. It lists 27 checks (tables, row-level security, no direct writes, server functions, the signup trigger, demo data removed, goal limits, every user has their accounts), and any ❌ comes first. |
+| [`repair-functions.sql`](scripts/repair-functions.sql) | The app says *"Could not find the function … in the schema cache"*. It recreates the server functions at their latest versions and reloads the API. It never touches data. |
+| [`repair-signup.sql`](scripts/repair-signup.sql) | The app says *"Account not found"*. It restores the signup trigger and adds any missing profile or accounts. Existing balances are never changed. |
+
+Don't re-run `20260922000000_minto_init.sql` on a project that's already set up: it stops at `type "account_kind" already exists` and changes nothing.
+
 ## Before going live with real money
 
 - **Demo data is gone for new users.** Migration `20260923000000_remove_demo_data.sql` stops seeding sample balances, transactions and goals, and removes `reset_demo_data`. Accounts created before it keep their demo data. To clear it, run this in the SQL Editor. It **permanently deletes every user's transactions and goals** and sets all balances to $0.00, so only do it before real users have real data:
@@ -59,6 +71,7 @@ Sign in with your email, enter the code, and you'll see your two accounts at $0.
 - every transfer rule and error message
 - goal limits and closing a goal
 - that new accounts start empty and the demo functions are gone
+- that the repair scripts are harmless on a healthy database (they run twice before the tests), and that the health check passes afterwards
 - goal limits: a goal type must be a short lowercase id, and each user can have at most 20 goals
 - account deletion: it removes only the caller's data, and anonymous users can't call it
 - anonymous access
